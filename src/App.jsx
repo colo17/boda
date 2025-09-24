@@ -5,7 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 // Config editable
 // ==========================
 const SITE_CONFIG = {
-  coupleNames: "Flo & Bruno",
+  coupleNames: "Flo & Cica",
   dateLabel: "Sábado 29 de Noviembre de 2025",
   timeLabel: "18:00 hs",
   venueName: "Finca Clara",
@@ -14,7 +14,7 @@ const SITE_CONFIG = {
     "https://maps.app.goo.gl/sYWUJTQiaP9WhPLr5",
   heroImageUrl: "/images/cicatrica.jpg",
   cityAndCountry: "Canelones, Uruguay",
-  primaryColor: "#8b5cf6",
+  primaryColor: "#2b292eff",
 };
 
 const GIFTS = [
@@ -23,7 +23,7 @@ const GIFTS = [
     title: "Juego de copas de cristal",
     price: 65,
     currency: "USD",
-    url: "#",
+    url: "modal:transfer",
     image: "/images/copas.jpg",
   },
   {
@@ -31,7 +31,7 @@ const GIFTS = [
     title: "Set de toallas premium",
     price: 80,
     currency: "USD",
-    url: "#",
+    url: "modal:transfer",
     image: "/images/toallas.jpg",
   },
   {
@@ -39,7 +39,7 @@ const GIFTS = [
     title: "Aporte para luna de miel",
     price: 100,
     currency: "USD",
-    url: "#",
+    url: "modal:transfer",
     image: "/images/cica1.jpg",
   },
   {
@@ -47,7 +47,7 @@ const GIFTS = [
     title: "Juego de copas de cristal",
     price: 65,
     currency: "USD",
-    url: "#",
+    url: "modal:transfer",
     image: "/images/copas.jpg",
   },
   {
@@ -55,7 +55,7 @@ const GIFTS = [
     title: "Set de toallas premium",
     price: 80,
     currency: "USD",
-    url: "#",
+    url: "modal:transfer",
     image: "/images/toallas.jpg",
   },
   {
@@ -63,7 +63,7 @@ const GIFTS = [
     title: "Aporte para luna de miel",
     price: 100,
     currency: "USD",
-    url: "#",
+    url: "modal:transfer",
     image: "/images/cica2.jpg",
   },
 ];
@@ -76,7 +76,7 @@ const ACCOUNTS = [
     accountType: "Caja de Ahorro",
     accountNumber: "000123456-7",
     aliasOrIBAN: "UY00 0000 0001 2345 6700",
-    notes: "Referencia: 'Regalo Boda Flo & Bruno'",
+    notes: "Regalo Boda Flo & Cica",
   },
   {
     bank: "Santander",
@@ -85,7 +85,7 @@ const ACCOUNTS = [
     accountType: "Cuenta",
     accountNumber: "001-987654-3",
     aliasOrIBAN: "UY00 0001 0987 6543 0000",
-    notes: "Referencia: 'Regalo Boda Flo & Bruno'",
+    notes: "Regalo Boda Flo & Cica",
   },
 ];
 
@@ -220,10 +220,10 @@ function Hero() {
   );
 }
 
-function GiftCard({ gift, reserved, reservedInfo, onToggle }) {
+function GiftCard({ gift, reserved, reservedInfo, onToggle, onTransfer }) {
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-3xl border border-black/5 bg-white shadow-sm">
-      {/* Bloque de imagen: ALTURA FIJA */}
+      {/* Imagen */}
       <div className="relative w-full h-60 overflow-hidden bg-gray-50 shrink-0">
         <img
           src={gift.image}
@@ -240,15 +240,15 @@ function GiftCard({ gift, reserved, reservedInfo, onToggle }) {
         </p>
 
         <div className="mt-auto pt-3 flex gap-2">
-          <a
-            href={gift.url}
-            target="_blank"
-            rel="noreferrer"
+          {/* Botón transferir */}
+          <button
+            onClick={() => onTransfer?.(gift)}
             className="px-3 py-2 rounded-xl text-sm border border-black/10 hover:bg-black/5"
           >
-            Ver referencia
-          </a>
+            Transferir
+          </button>
 
+          {/* Botón reservar/cancelar */}
           <button
             onClick={onToggle}
             className={classNames(
@@ -261,6 +261,7 @@ function GiftCard({ gift, reserved, reservedInfo, onToggle }) {
           </button>
         </div>
 
+        {/* Info de quién lo reservó */}
         {reserved && reservedInfo && (
           <p className="mt-2 text-xs text-black/60">
             Reservado por <strong>{reservedInfo.reserved_by || "Invitado"}</strong>
@@ -269,9 +270,13 @@ function GiftCard({ gift, reserved, reservedInfo, onToggle }) {
         )}
       </div>
 
+      {/* Cartel reservado con fondo BLANCO forzado */}
       {reserved && (
-        <div className="absolute top-3 right-3 rounded-full px-3 py-1 text-xs font-medium bg-white text-green-600 border border-green-500 shadow">
-    ✅ Reservado
+        <div
+          className="absolute top-3 right-3 rounded-full px-3 py-1 text-xs border border-black/10 shadow-md text-black font-medium"
+          style={{ backgroundColor: "rgba(255, 255, 255, 0.92)" }}
+        >
+          ✅ Reservado
         </div>
       )}
     </div>
@@ -282,14 +287,18 @@ function Gifts() {
   const [reservations, setReservations] = useState({}); // { [giftId]: { reserved_by, note, created_at } }
   const [loading, setLoading] = useState(false);
 
-  // Modal
+  // Modal reservar
   const [modalOpen, setModalOpen] = useState(false);
   const [activeGift, setActiveGift] = useState(null);
   const [guestName, setGuestName] = useState("");
   const [guestNote, setGuestNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // Desbloqueo
+  // Modal agradecimiento
+  const [thankOpen, setThankOpen] = useState(false);
+  const [thankGift, setThankGift] = useState(null);
+
+  // Liberar reserva
   const [releasingId, setReleasingId] = useState(null);
 
   // Cargar reservas + realtime
@@ -348,8 +357,10 @@ function Gifts() {
     };
   }, []);
 
+  // Abrir modal de reserva (o reservar local si no hay supabase)
   const onReserveClick = (gift) => {
     if (!supabase) {
+      // Modo sin servidor: marcar local y mostrar gracias
       setReservations((prev) => ({
         ...prev,
         [gift.id]: {
@@ -358,6 +369,8 @@ function Gifts() {
           created_at: new Date().toISOString(),
         },
       }));
+      setThankGift(gift);
+      setThankOpen(true);
       return;
     }
     setActiveGift(gift);
@@ -366,6 +379,7 @@ function Gifts() {
     setModalOpen(true);
   };
 
+  // Confirmar reserva (guarda en Supabase) + abrir gracias
   const confirmReserve = async () => {
     if (!activeGift) return;
     setSubmitting(true);
@@ -390,7 +404,9 @@ function Gifts() {
       }));
 
       setModalOpen(false);
+      setThankGift(activeGift);
       setActiveGift(null);
+      setThankOpen(true); // abrir popup de agradecimiento
     } catch (e) {
       console.error("SUPABASE UPSERT ERROR", e);
       alert(`No se pudo guardar la reserva: ${e.message || e}`);
@@ -399,6 +415,7 @@ function Gifts() {
     }
   };
 
+  // Liberar un regalo (borra la fila)
   const releaseGift = async (giftId) => {
     const ok = confirm("¿Seguro que querés liberar este regalo?");
     if (!ok) return;
@@ -420,7 +437,7 @@ function Gifts() {
         .eq("gift_id", giftId);
 
       if (error) {
-        // revertir
+        // revertir si falla
         setReservations((cur) => ({ ...cur, [giftId]: prev }));
         alert(`No se pudo liberar: ${error.message}`);
       }
@@ -439,8 +456,7 @@ function Gifts() {
       className="scroll-mt-24 py-16 md:py-24 bg-gradient-to-b from-white to-black/[0.02]"
     >
       <div className="mx-auto max-w-6xl px-4">
-
-        {/* ENCABEZADO: móvil apilado; desktop como estaba */}
+        {/* Encabezado: móvil apilado; desktop como antes */}
         <div className="mb-6">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             {/* Título + texto */}
@@ -456,7 +472,7 @@ function Gifts() {
                 <p className="text-sm text-black/60 mt-1">Cargando reservas…</p>
               )}
 
-              {/* Botones SOLO debajo en móvil */}
+              {/* Botones debajo solo en móvil */}
               <div className="mt-4 flex flex-wrap justify-center gap-2 sm:hidden">
                 <a
                   href={`https://wa.me/?text=${shareMessage}`}
@@ -475,7 +491,7 @@ function Gifts() {
               </div>
             </div>
 
-            {/* Botones a la derecha en desktop (igual que antes) */}
+            {/* Botones a la derecha en desktop */}
             <div className="hidden sm:flex gap-2">
               <a
                 href={`https://wa.me/?text=${shareMessage}`}
@@ -495,7 +511,7 @@ function Gifts() {
           </div>
         </div>
 
-        {/* Grilla de tarjetas usando GiftCard */}
+        {/* Grilla de tarjetas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {GIFTS.map((gift) => {
             const r = reservations[gift.id];
@@ -508,8 +524,12 @@ function Gifts() {
                 reservedInfo={r}
                 onToggle={() =>
                   isReserved ? releaseGift(gift.id) : onReserveClick(gift)
-                }
-              />
+                  }
+                onTransfer={(g) => {
+                setThankGift(g);
+                setThankOpen(true);
+              }}
+/>
             );
           })}
         </div>
@@ -527,9 +547,17 @@ function Gifts() {
         onCancel={() => setModalOpen(false)}
         onConfirm={confirmReserve}
       />
+
+      {/* Modal de agradecimiento */}
+      <ThankYouModal
+        open={thankOpen}
+        onClose={() => setThankOpen(false)}
+        gift={thankGift}
+      />
     </section>
   );
 }
+
 
 function ReservationModal({ open, gift, name, note, setName, setNote, onCancel, onConfirm, submitting }) {
   if (!open || !gift) return null;
@@ -579,19 +607,75 @@ function ReservationModal({ open, gift, name, note, setName, setNote, onCancel, 
   );
 }
 
-function AccountRow({ a }) {
-  const [copied, setCopied] = useState(false);
+function ThankYouModal({ open, onClose, gift }) {
+  if (!open) return null;
 
+  return (
+    <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md rounded-2xl bg-white shadow-lg border border-black/10 p-5">
+        <h3 className="text-lg font-semibold">🎁 ¡Gracias por el regalo! 🎁</h3>
+
+        {gift && (
+          <div className="mt-2 rounded-xl border border-black/10 bg-black/[0.02] p-3">
+            <p className="text-sm">
+              Has reservado: <strong>{gift.title}</strong>
+            </p>
+            <p className="text-sm text-black/70">
+              Monto sugerido: <strong>{gift.price} {gift.currency}</strong>
+            </p>
+          </div>
+        )}
+
+        <p className="text-sm text-black/60 mt-3">
+          Te dejamos los datos para hacer un depósito o transferencia:
+        </p>
+
+        <div className="mt-4 space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+          {ACCOUNTS.map((a, i) => (
+            <AccountRow key={i} a={a} gift={gift} />
+          ))}
+        </div>
+
+        <div className="mt-5 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-3 py-2 rounded-xl text-sm border border-black/10 hover:bg-black/5"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AccountRow({ a }) {
+  // Texto que se copia (sin IBAN)
   const toCopy = `${a.bank} · ${a.accountType} (${a.currency})
 Titular: ${a.holder}
 Cuenta: ${a.accountNumber}
-IBAN/Alias: ${a.aliasOrIBAN || "-"}
-${a.notes || ""}`.trim();
+${a.notes ? `Referencia: ${a.notes}` : ""}`.trim();
+
+  const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(toCopy);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000); // vuelve a "Copiar datos" después de 2s
+    try {
+      await navigator.clipboard.writeText(toCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      // Fallback (por si clipboard falla)
+      const ta = document.createElement("textarea");
+      ta.value = toCopy;
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    }
   };
 
   return (
@@ -602,21 +686,23 @@ ${a.notes || ""}`.trim();
         </p>
         <p className="text-sm text-black/70">Titular: {a.holder}</p>
         <p className="text-sm text-black/70">Cuenta: {a.accountNumber}</p>
-        {a.aliasOrIBAN && (
-          <p className="text-sm text-black/70">IBAN/Alias: {a.aliasOrIBAN}</p>
+        {a.notes && (
+          <p className="text-xs text-black/60 mt-1">Referencia: {a.notes}</p>
         )}
-        {a.notes && <p className="text-xs text-black/50 mt-1">{a.notes}</p>}
       </div>
+
       <div className="flex gap-2">
         <button
           onClick={handleCopy}
-          className={`px-3 py-2 rounded-xl text-sm border transition ${
-            copied
-              ? "bg-green-500 text-white border-green-600"
-              : "border-black/10 hover:bg-black/5"
-          }`}
+          className={
+            "px-3 py-2 rounded-xl text-sm border transition-colors " +
+            (copied
+              ? "bg-green-500 text-white border-green-600 cursor-default"
+              : "border-black/10 hover:bg-black/5")
+          }
+          aria-live="polite"
         >
-          {copied ? "Copiado ✅" : "Copiar datos"}
+          {copied ? "Copiado" : "Copiar datos"}
         </button>
       </div>
     </div>
