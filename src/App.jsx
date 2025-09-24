@@ -161,34 +161,37 @@ function Nav() {
 
 function Hero() {
   return (
-    <section id="inicio" className="relative">
-      {/* ahora ocupa toda la pantalla en desktop, pero más chico en móvil */}
-      <div className="relative h-[60vh] sm:h-screen flex items-center justify-center">
-        {/* imagen de fondo */}
+    <section
+      id="inicio"
+      className="relative pt-16 sm:pt-0 scroll-mt-24"
+    >
+      {/* móvil: 100vh + padding arriba/abajo, desktop: pantalla completa */}
+      <div className="relative h-[100vh] sm:h-screen flex items-center justify-center px-4 py-10 sm:py-0">
         <img
           src={SITE_CONFIG.heroImageUrl}
           alt="Foto de los novios"
-          className="absolute inset-0 w-full h-full object-cover sm:object-cover object-center"
+          className="absolute inset-0 w-full h-full object-cover"
         />
-        {/* overlay global opcional para oscurecer un poco toda la foto */}
         <div className="absolute inset-0 bg-black/30" />
 
-        {/* tarjeta de texto centrada */}
-        <div className="relative z-10 w-full mx-auto max-w-3xl px-4">
-          <div className="bg-black/50 backdrop-blur-md rounded-3xl p-6 md:p-10 shadow-lg border border-white/10 text-center text-white">
-            <p className="uppercase tracking-[0.2em] text-xs md:text-sm text-white/70 mb-2">
+        {/* tarjeta */}
+        <div className="relative z-10 w-full mx-auto max-w-lg sm:max-w-3xl">
+          <div className="bg-black/50 backdrop-blur-md rounded-2xl sm:rounded-3xl p-4 sm:p-8 md:p-10 shadow-lg border border-white/10 text-center text-white">
+            <p className="uppercase tracking-[0.2em] text-xs sm:text-sm text-white/70 mb-1 sm:mb-2">
               ¡Nos casamos!
             </p>
-            <h1 className="text-4xl md:text-6xl font-bold leading-tight">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold leading-tight">
               {SITE_CONFIG.coupleNames}
             </h1>
-            <p className="mt-3 text-lg md:text-2xl text-white/80">
+            <p className="mt-2 sm:mt-3 text-base sm:text-xl md:text-2xl text-white/80">
               {SITE_CONFIG.dateLabel} · {SITE_CONFIG.timeLabel}
             </p>
-            <p className="text-white/70">{SITE_CONFIG.cityAndCountry}</p>
+            <p className="text-white/70 text-sm sm:text-base">
+              {SITE_CONFIG.cityAndCountry}
+            </p>
 
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-              <span className="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-full bg-white/10">
+            <div className="mt-3 sm:mt-5 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+              <span className="hidden sm:inline-flex items-center gap-2 text-sm px-3 py-2 rounded-full bg-white/10">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
                   <path d="M12 2.25c-4.97 0-9 3.89-9 8.687 0 2.615 1.282 5.039 3.516 6.79L12 21.75l5.484-3.99c2.234-1.75 3.516-4.174 3.516-6.79 0-4.797-4.03-8.687-9-8.687Z"/>
                 </svg>
@@ -198,7 +201,7 @@ function Hero() {
                 href={SITE_CONFIG.mapsUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="text-sm underline underline-offset-4 hover:opacity-80"
+                className="text-xs sm:text-sm underline underline-offset-4 hover:opacity-80"
               >
                 {SITE_CONFIG.venueAddress}
               </a>
@@ -429,38 +432,63 @@ function Gifts() {
       className="scroll-mt-24 py-16 md:py-24 bg-gradient-to-b from-white to-black/[0.02]"
     >
       <div className="mx-auto max-w-6xl px-4">
-        <div className="flex items-end justify-between gap-4 mb-6">
-          <div>
-            <h2 className="text-2xl md:text-3xl font-bold">Regalos</h2>
-            <p className="text-black/60">
-              Elegí uno para obsequiarnos.{" "}
-              {supabase
-                ? "Las reservas se sincronizan para todos en tiempo real."
-                : "*(Modo sin servidor: las reservas solo se guardan en este navegador)*"}
-            </p>
-            {loading && (
-              <p className="text-sm text-black/60 mt-1">Cargando reservas…</p>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <a
-              href={`https://wa.me/?text=${shareMessage}`}
-              target="_blank"
-              rel="noreferrer"
-              className="px-3 py-2 rounded-xl text-sm border border-black/10 hover:bg-black/5"
-            >
-              Compartir por WhatsApp
-            </a>
-            <a
-              href={`mailto:?subject=Lista%20de%20regalos&body=${shareMessage}`}
-              className="px-3 py-2 rounded-xl text-sm border border-black/10 hover:bg-black/5"
-            >
-              Compartir por Email
-            </a>
+
+        {/* ENCABEZADO: móvil apilado; desktop como estaba */}
+        <div className="mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            {/* Título + texto */}
+            <div className="text-center sm:text-left">
+              <h2 className="text-2xl md:text-3xl font-bold">Regalos</h2>
+              <p className="text-black/60 mt-2">
+                Elegí uno para obsequiarnos.{" "}
+                {supabase
+                  ? "Las reservas se sincronizan para todos en tiempo real."
+                  : "*(Modo sin servidor: las reservas solo se guardan en este navegador)*"}
+              </p>
+              {loading && (
+                <p className="text-sm text-black/60 mt-1">Cargando reservas…</p>
+              )}
+
+              {/* Botones SOLO debajo en móvil */}
+              <div className="mt-4 flex flex-wrap justify-center gap-2 sm:hidden">
+                <a
+                  href={`https://wa.me/?text=${shareMessage}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3 py-2 rounded-xl text-sm border border-black/10 hover:bg-black/5"
+                >
+                  Compartir por WhatsApp
+                </a>
+                <a
+                  href={`mailto:?subject=Lista%20de%20regalos&body=${shareMessage}`}
+                  className="px-3 py-2 rounded-xl text-sm border border-black/10 hover:bg-black/5"
+                >
+                  Compartir por Email
+                </a>
+              </div>
+            </div>
+
+            {/* Botones a la derecha en desktop (igual que antes) */}
+            <div className="hidden sm:flex gap-2">
+              <a
+                href={`https://wa.me/?text=${shareMessage}`}
+                target="_blank"
+                rel="noreferrer"
+                className="px-3 py-2 rounded-xl text-sm border border-black/10 hover:bg-black/5"
+              >
+                Compartir por WhatsApp
+              </a>
+              <a
+                href={`mailto:?subject=Lista%20de%20regalos&body=${shareMessage}`}
+                className="px-3 py-2 rounded-xl text-sm border border-black/10 hover:bg-black/5"
+              >
+                Compartir por Email
+              </a>
+            </div>
           </div>
         </div>
 
-        {/* Grilla de tarjetas usando GiftCard (todas con la misma altura de imagen) */}
+        {/* Grilla de tarjetas usando GiftCard */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {GIFTS.map((gift) => {
             const r = reservations[gift.id];
