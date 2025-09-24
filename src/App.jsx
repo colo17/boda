@@ -228,32 +228,35 @@ function GiftCard({ gift, reserved, onToggle }) {
 }
 
 function Gifts() {
-  const [reservations, setReservations] = useState({}); // { [giftId]: { reserved_by, created_at } }
+  const [reservations, setReservations] = useState({}); // { [giftId]: { reserved_by, note, created_at } }
   const [loading, setLoading] = useState(false);
 
-  // Cargar reservas existentes
+  // Estado del modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [activeGift, setActiveGift] = useState(null);
+  const [guestName, setGuestName] = useState("");
+  const [guestNote, setGuestNote] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  // Cargar reservas existentes + suscripción en tiempo real
   useEffect(() => {
-    if (!supabase) return; // si no hay config, queda en modo local sin tiempo real
+    if (!supabase) return; // si no configuraste .env, funciona en modo local sin tiempo real
+
     (async () => {
       setLoading(true);
       const { data, error } = await supabase
         .from("reservations")
-        .select("gift_id, reserved_by, created_at");
+        .select("gift_id, reserved_by, note, created_at");
       if (!error && data) {
         const map = {};
-        data.forEach(
-          (r) =>
-            (map[r.gift_id] = {
-              reserved_by: r.reserved_by,
-              created_at: r.created_at,
-            })
-        );
+        data.forEach((r) => {
+          map[r.gift_id] = { reserved_by: r.reserved_by, note: r.note, created_at: r.created_at };
+        });
         setReservations(map);
       }
       setLoading(false);
     })();
 
-    // Suscripción en tiempo real
     const channel = supabase
       .channel("reservations")
       .on(
@@ -264,10 +267,7 @@ function Gifts() {
             const r = payload.new;
             setReservations((prev) => ({
               ...prev,
-              [r.gift_id]: {
-                reserved_by: r.reserved_by,
-                created_at: r.created_at,
-              },
+              [r.gift_id]: { reserved_by: r.reserved_by, note: r.note, created_at: r.created_at },
             }));
           } else if (payload.eventType === "DELETE") {
             const r = payload.old;
@@ -286,37 +286,100 @@ function Gifts() {
     };
   }, []);
 
-  // Toggle (reserva/libera)
-  const toggleReservation = async (giftId) => {
+  // CLICK reservar -> abre modal (si hay Supabase). En modo sin servidor, marca localmente.
+  const onReserveClick = (gift) => {
     if (!supabase) {
-      // Fallback sin servidor: estado local
       setReservations((prev) => ({
         ...prev,
-        [giftId]: prev[giftId]
-          ? undefined
-          : { reserved_by: "Invitado", created_at: new Date().toISOString() },
+        [gift.id]: { reserved_by: "Invitado", note: "", created_at: new Date().toISOString() },
       }));
       return;
     }
-
-    if (reservations[giftId]) {
-      await supabase.from("reservations").delete().eq("gift_id", giftId);
-    } else {
-      await supabase
-        .from("reservations")
-        .upsert({ gift_id: giftId, reserved_by: "Invitado" });
-    }
+    setActiveGift(gift);
+    setGuestName("");
+    setGuestNote("");
+    setModalOpen(true);
   };
+
+  // Confirmar reserva (guarda en Supabase)
+  const confirmReserve = async () => {
+  if (!activeGift) return;
+  setSubmitting(true);
+  try {
+    const payload = {
+      gift_id: activeGift.id,
+      reserved_by: guestName.trim() || "Invitado",
+      note: guestNote.trim() || null,
+    };
+
+    // Guarda en Supabase
+    const { error } = await supabase.from("reservations").upsert(payload);
+    if (error) throw error;
+
+    // ✅ Update optimista en UI (no esperamos realtime)
+    setReservations(prev => ({
+      ...prev,
+      [activeGift.id]: {
+        reserved_by: payload.reserved_by,
+        note: payload.note,
+        created_at: new Date().toISOString(),
+      },
+    }));
+
+    setModalOpen(false);
+    setActiveGift(null);
+  } catch (e) {
+    console.error("SUPABASE UPSERT ERROR", e);
+    alert(`No se pudo guardar la reserva: ${e.message || e}`);
+  } finally {
+    setSubmitting(false);
+  }
+};
+
+  // Liberar un regalo (borra la fila)
+ const [releasingId, setReleasingId] = useState(null); // opcional: para deshabilitar botón
+
+const releaseGift = async (giftId) => {
+  const ok = confirm("¿Seguro que querés liberar este regalo?");
+  if (!ok) return;
+
+  // 🔒 deshabilitar botón mientras libera (opcional)
+  setReleasingId(giftId);
+
+  // ✅ update optimista: quitamos del estado primero
+  const prev = reservations[giftId];
+  setReservations((cur) => {
+    const clone = { ...cur };
+    delete clone[giftId];
+    return clone;
+  });
+
+  try {
+    const { error } = await supabase
+      .from("reservations")
+      .delete()
+      .eq("gift_id", giftId);
+
+    if (error) {
+      // ❌ revertir si falla
+      setReservations((cur) => ({ ...cur, [giftId]: prev }));
+      alert(`No se pudo liberar: ${error.message}`);
+    } else {
+      // (Opcional) refetch puntual como “seguro”
+      // await supabase.from("reservations").select("gift_id").eq("gift_id", giftId).single();
+      // si vuelve 404, ya está liberado; no hace falta tocar el estado
+    }
+  } finally {
+    setReleasingId(null);
+  }
+};
 
   const shareMessage = encodeURIComponent(
     `Te compartimos nuestra lista de regalos: ${window.location.href}\n¡Gracias por acompañarnos!`
   );
 
   return (
-    <section
-      id="regalos"
-      className="scroll-mt-24 py-16 md:py-24 bg-gradient-to-b from-white to-black/[0.02]"
-    >
+    <section id="regalos" className="scroll-mt-24 py-16 md:py-24 bg-gradient-to-b from-white to-black/[0.02]">
       <div className="mx-auto max-w-6xl px-4">
         <div className="flex items-end justify-between gap-4 mb-6">
           <div>
@@ -327,9 +390,7 @@ function Gifts() {
                 ? "Las reservas se sincronizan para todos en tiempo real."
                 : "*(Modo sin servidor: las reservas solo se guardan en este navegador)*"}
             </p>
-            {loading && (
-              <p className="text-sm text-black/60 mt-1">Cargando reservas…</p>
-            )}
+            {loading && <p className="text-sm text-black/60 mt-1">Cargando reservas…</p>}
           </div>
           <div className="flex gap-2">
             <a
@@ -350,17 +411,128 @@ function Gifts() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {GIFTS.map((gift) => (
-            <GiftCard
-              key={gift.id}
-              gift={gift}
-              reserved={!!reservations[gift.id]}
-              onToggle={() => toggleReservation(gift.id)}
-            />
-          ))}
+          {GIFTS.map((gift) => {
+            const r = reservations[gift.id];
+            const isReserved = !!r;
+            return (
+              <div key={gift.id} className="group relative overflow-hidden rounded-3xl border border-black/5 bg-white shadow-sm">
+                <div className="aspect-[4/3] w-full overflow-hidden">
+                  <img src={gift.image} alt={gift.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold text-lg">{gift.title}</h3>
+                  <p className="text-black/60 text-sm">
+                    {gift.currency} {gift.price}
+                  </p>
+                  <div className="mt-3 flex gap-2">
+                    <a
+                      href={gift.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-3 py-2 rounded-xl text-sm border border-black/10 hover:bg-black/5"
+                    >
+                      Ver referencia
+                    </a>
+                    
+                    {isReserved ? (
+                      <button
+                        onClick={() => releaseGift(gift.id)}
+                        className="px-3 py-2 rounded-xl text-sm text-white"
+                        style={{ backgroundColor: "var(--primary)" }}
+                      >
+                        Cancelar Reserva
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => onReserveClick(gift)}
+                        className="px-3 py-2 rounded-xl text-sm text-white"
+                        style={{ backgroundColor: "var(--primary)" }}
+                      >
+                        Reservar
+                      </button>
+                    )}
+                  </div>
+
+                  {isReserved && (
+                    <p className="text-xs text-black/60 mt-2">
+                      Reservado por <strong>{r.reserved_by || "Invitado"}</strong>
+                      {r.note ? ` — “${r.note}”` : ""}
+                    </p>
+                  )}
+                </div>
+
+                {isReserved && (
+                  <div className="absolute top-3 right-3 rounded-full px-3 py-1 text-xs bg-white/90 border border-black/5 shadow">
+                    ✅ Reservado
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
+
+      {/* Modal de reserva */}
+      <ReservationModal
+        open={modalOpen}
+        gift={activeGift}
+        name={guestName}
+        note={guestNote}
+        setName={setGuestName}
+        setNote={setGuestNote}
+        submitting={submitting}
+        onCancel={() => setModalOpen(false)}
+        onConfirm={confirmReserve}
+      />
     </section>
+  );
+}
+
+function ReservationModal({ open, gift, name, note, setName, setNote, onCancel, onConfirm, submitting }) {
+  if (!open || !gift) return null;
+  return (
+    <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md rounded-2xl bg-white shadow-lg border border-black/10 p-5">
+        <h3 className="text-lg font-semibold">Reservar: {gift.title}</h3>
+        <p className="text-sm text-black/60 mt-1">Dejanos tu nombre y un mensajito (opcional).</p>
+
+        <div className="mt-4 space-y-3">
+          <div>
+            <label className="text-sm font-medium">Tu nombre</label>
+            <input
+              className="mt-1 w-full rounded-xl border border-black/15 px-3 py-2 outline-none focus:ring-2 focus:ring-black/10"
+              placeholder="Ej: Juan / Familia Pérez"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Mensaje (opcional)</label>
+            <textarea
+              className="mt-1 w-full rounded-xl border border-black/15 px-3 py-2 outline-none focus:ring-2 focus:ring-black/10"
+              rows={3}
+              placeholder="Con mucho cariño para ustedes…"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="mt-5 flex justify-end gap-2">
+          <button onClick={onCancel} className="px-3 py-2 rounded-xl text-sm border border-black/10 hover:bg-black/5">
+            Cancelar
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={submitting || !name.trim()}
+            className="px-3 py-2 rounded-xl text-sm text-white disabled:opacity-60"
+            style={{ backgroundColor: "var(--primary)" }}
+          >
+            {submitting ? "Guardando..." : "Confirmar reserva"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
