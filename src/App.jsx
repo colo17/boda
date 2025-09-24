@@ -284,7 +284,7 @@ function GiftCard({ gift, reserved, reservedInfo, onToggle, onTransfer }) {
 }
 
 function Gifts() {
-  const [reservations, setReservations] = useState({}); // { [giftId]: { reserved_by, note, created_at } }
+  const [reservations, setReservations] = useState({});
   const [loading, setLoading] = useState(false);
 
   // Modal reservar
@@ -297,11 +297,11 @@ function Gifts() {
   // Modal agradecimiento
   const [thankOpen, setThankOpen] = useState(false);
   const [thankGift, setThankGift] = useState(null);
+  const [thankGuest, setThankGuest] = useState("");   // 👈 nombre para el modal
 
   // Liberar reserva
   const [releasingId, setReleasingId] = useState(null);
 
-  // Cargar reservas + realtime
   useEffect(() => {
     if (!supabase) return;
 
@@ -357,10 +357,9 @@ function Gifts() {
     };
   }, []);
 
-  // Abrir modal de reserva (o reservar local si no hay supabase)
   const onReserveClick = (gift) => {
     if (!supabase) {
-      // Modo sin servidor: marcar local y mostrar gracias
+      // Modo sin servidor
       setReservations((prev) => ({
         ...prev,
         [gift.id]: {
@@ -370,6 +369,7 @@ function Gifts() {
         },
       }));
       setThankGift(gift);
+      setThankGuest("Invitado");   // 👈 nombre por defecto en modo local
       setThankOpen(true);
       return;
     }
@@ -379,7 +379,6 @@ function Gifts() {
     setModalOpen(true);
   };
 
-  // Confirmar reserva (guarda en Supabase) + abrir gracias
   const confirmReserve = async () => {
     if (!activeGift) return;
     setSubmitting(true);
@@ -393,7 +392,7 @@ function Gifts() {
       const { error } = await supabase.from("reservations").upsert(payload);
       if (error) throw error;
 
-      // Update optimista
+      // Optimista
       setReservations((prev) => ({
         ...prev,
         [activeGift.id]: {
@@ -405,8 +404,9 @@ function Gifts() {
 
       setModalOpen(false);
       setThankGift(activeGift);
+      setThankGuest(payload.reserved_by);   // 👈 guardamos el nombre tipeado
       setActiveGift(null);
-      setThankOpen(true); // abrir popup de agradecimiento
+      setThankOpen(true);
     } catch (e) {
       console.error("SUPABASE UPSERT ERROR", e);
       alert(`No se pudo guardar la reserva: ${e.message || e}`);
@@ -415,14 +415,11 @@ function Gifts() {
     }
   };
 
-  // Liberar un regalo (borra la fila)
   const releaseGift = async (giftId) => {
     const ok = confirm("¿Seguro que querés liberar este regalo?");
     if (!ok) return;
-
     setReleasingId(giftId);
 
-    // Optimista
     const prev = reservations[giftId];
     setReservations((cur) => {
       const clone = { ...cur };
@@ -437,7 +434,6 @@ function Gifts() {
         .eq("gift_id", giftId);
 
       if (error) {
-        // revertir si falla
         setReservations((cur) => ({ ...cur, [giftId]: prev }));
         alert(`No se pudo liberar: ${error.message}`);
       }
@@ -456,10 +452,8 @@ function Gifts() {
       className="scroll-mt-24 py-16 md:py-24 bg-gradient-to-b from-white to-black/[0.02]"
     >
       <div className="mx-auto max-w-6xl px-4">
-        {/* Encabezado: móvil apilado; desktop como antes */}
         <div className="mb-6">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-            {/* Título + texto */}
             <div className="text-center sm:text-left">
               <h2 className="text-2xl md:text-3xl font-bold">Regalos</h2>
               <p className="text-black/60 mt-2">
@@ -472,7 +466,6 @@ function Gifts() {
                 <p className="text-sm text-black/60 mt-1">Cargando reservas…</p>
               )}
 
-              {/* Botones debajo solo en móvil */}
               <div className="mt-4 flex flex-wrap justify-center gap-2 sm:hidden">
                 <a
                   href={`https://wa.me/?text=${shareMessage}`}
@@ -491,7 +484,6 @@ function Gifts() {
               </div>
             </div>
 
-            {/* Botones a la derecha en desktop */}
             <div className="hidden sm:flex gap-2">
               <a
                 href={`https://wa.me/?text=${shareMessage}`}
@@ -511,7 +503,6 @@ function Gifts() {
           </div>
         </div>
 
-        {/* Grilla de tarjetas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {GIFTS.map((gift) => {
             const r = reservations[gift.id];
@@ -524,18 +515,19 @@ function Gifts() {
                 reservedInfo={r}
                 onToggle={() =>
                   isReserved ? releaseGift(gift.id) : onReserveClick(gift)
-                  }
+                }
                 onTransfer={(g) => {
-                setThankGift(g);
-                setThankOpen(true);
-              }}
-/>
+                  // desde "Transferir" no hay nombre, así que lo dejamos vacío
+                  setThankGift(g);
+                  setThankGuest("");
+                  setThankOpen(true);
+                }}
+              />
             );
           })}
         </div>
       </div>
 
-      {/* Modal de reserva */}
       <ReservationModal
         open={modalOpen}
         gift={activeGift}
@@ -548,15 +540,16 @@ function Gifts() {
         onConfirm={confirmReserve}
       />
 
-      {/* Modal de agradecimiento */}
       <ThankYouModal
         open={thankOpen}
         onClose={() => setThankOpen(false)}
         gift={thankGift}
+        guest={thankGuest}           // 👈 pasamos el nombre al modal
       />
     </section>
   );
 }
+
 
 
 function ReservationModal({ open, gift, name, note, setName, setNote, onCancel, onConfirm, submitting }) {
@@ -607,7 +600,7 @@ function ReservationModal({ open, gift, name, note, setName, setNote, onCancel, 
   );
 }
 
-function ThankYouModal({ open, onClose, gift }) {
+function ThankYouModal({ open, onClose, gift, guest }) {
   if (!open) return null;
 
   return (
@@ -632,8 +625,7 @@ function ThankYouModal({ open, onClose, gift }) {
 
         <div className="mt-4 space-y-3 max-h-[60vh] overflow-y-auto pr-1">
           {ACCOUNTS.map((a, i) => (
-            // 👇 le pasamos el gift completo para que AccountRow use gift.title
-            <AccountRow key={i} a={a} gift={gift} />
+            <AccountRow key={i} a={a} gift={gift} guest={guest} />
           ))}
         </div>
 
@@ -650,14 +642,13 @@ function ThankYouModal({ open, onClose, gift }) {
   );
 }
 
-function AccountRow({ a, gift }) {
-  // Si viene gift, usamos "Nombre del regalo · Boda Flo & Cica".
-  // Si no, usamos lo que haya en a.notes (para la sección Depósitos fuera del modal).
+
+function AccountRow({ a, gift, guest }) {
+  // Si viene gift, usamos "Regalo · Boda Flo & Cica · de <guest>"
   const referenceText = gift?.title
-    ? `${gift.title} · Regalo Boda Flo y Cica · de Tu Nombre`
+    ? `${gift.title} · Boda Flo & Cica${guest ? ` · ${guest}` : ""}`
     : (a.notes || "");
 
-  // Texto a copiar (sin IBAN)
   const toCopy = `${a.bank} · ${a.accountType} (${a.currency})
 Titular: ${a.holder}
 Cuenta: ${a.accountNumber}
@@ -671,7 +662,6 @@ ${referenceText ? `Referencia: ${referenceText}` : ""}`.trim();
       setCopied(true);
       setTimeout(() => setCopied(false), 1600);
     } catch {
-      // Fallback
       const ta = document.createElement("textarea");
       ta.value = toCopy;
       ta.style.position = "fixed";
