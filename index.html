@@ -1,10 +1,22 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>boda</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Boda</title>
+
+    <!-- Tailwind por CDN: sencillo y sin build -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Reset mínimo para que Vite no “encajone” el layout -->
+    <style>
+      html, body, #root { height: 100%; }
+      body { margin: 0; background: #fff; color: #111; }
+      #root { max-width: none !important; padding: 0 !important; text-align: initial !important; }
+    </style>
   </head>
   <body>
     <div id="root"></div>

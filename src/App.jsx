@@ -1,24 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
-/**
- * Plantilla single‑page para boda (3 secciones):
- * 1) Portada (foto grande + título + fecha/hora + lugar)
- * 2) Lista de regalos (los invitados eligen qué regalar y pueden marcarlo como reservado)
- * 3) Depósitos / datos bancarios (con copiar al portapapeles)
- *
- * ✅ 100% responsive, estética moderna (Tailwind CSS)
- * ✅ Navegación con scroll suave
- * ✅ Estados guardados en localStorage (regalos reservados)
- * ✅ Botones compartir por WhatsApp / email (opcional)
- *
- * 👉 Cómo usar:
- *  - Cambiá el contenido dentro de "SITE_CONFIG", "GIFTS" y "ACCOUNTS".
- *  - Reemplazá la imagen de portada por una tuya (heroImageUrl).
- *  - Publicá en Vercel/Netlify/GitHub Pages.
- */
-
 // ==========================
-// Configuración editable
+// Config editable
 // ==========================
 const SITE_CONFIG = {
   coupleNames: "Agus & Nico",
@@ -26,22 +9,20 @@ const SITE_CONFIG = {
   timeLabel: "19:30 hs",
   venueName: "Estancia La Magnolia",
   venueAddress: "Camino de los Molinos s/n, Canelones",
-  mapsUrl:
-    "https://maps.google.com/?q=Estancia%20La%20Magnolia%20Camino%20de%20los%20Molinos",
+  mapsUrl: "https://maps.google.com/?q=Estancia%20La%20Magnolia%20Camino%20de%20los%20Molinos",
   heroImageUrl:
     "https://images.unsplash.com/photo-1496439786094-e697ca3584f2?q=80&w=2068&auto=format&fit=crop",
   cityAndCountry: "Canelones, Uruguay",
-  primaryColor: "#8b5cf6", // violeta — podés cambiarlo
+  primaryColor: "#8b5cf6",
 };
 
-// Lista de regalos (podés poner precio, link de referencia y una imagen)
 const GIFTS = [
   {
     id: "g1",
     title: "Juego de copas de cristal",
     price: 65,
     currency: "USD",
-    url: "https://ejemplo.com/copas",
+    url: "#",
     image:
       "https://images.unsplash.com/photo-1527960471264-932f39eb5840?q=80&w=2070&auto=format&fit=crop",
   },
@@ -50,7 +31,7 @@ const GIFTS = [
     title: "Set de toallas premium",
     price: 80,
     currency: "USD",
-    url: "https://ejemplo.com/toallas",
+    url: "#",
     image:
       "https://images.unsplash.com/photo-1603178456212-4059e416c4d1?q=80&w=2071&auto=format&fit=crop",
   },
@@ -59,76 +40,51 @@ const GIFTS = [
     title: "Aporte para luna de miel",
     price: 100,
     currency: "USD",
-    url: "https://ejemplo.com/luna-de-miel",
+    url: "#",
     image:
       "https://images.unsplash.com/photo-1526772662000-3f88f10405ff?q=80&w=2070&auto=format&fit=crop",
   },
-  {
-    id: "g4",
-    title: "Cafetera espresso",
-    price: 150,
-    currency: "USD",
-    url: "https://ejemplo.com/cafetera",
-    image:
-      "https://images.unsplash.com/photo-1447933601403-0c6688de566e?q=80&w=2069&auto=format&fit=crop",
-  },
 ];
 
-// Datos para depósitos / transferencias (agregá las cuentas que necesites)
 const ACCOUNTS = [
   {
     bank: "BROU",
-    holder: "Agustina Pérez",
+    holder: "Agustina Perez",
     currency: "UYU",
     accountType: "Caja de Ahorro",
     accountNumber: "000123456-7",
     aliasOrIBAN: "UY00 0000 0001 2345 6700",
-    notes: "Referencia: ‘Regalo Boda Agus & Nico’",
+    notes: "Referencia: 'Regalo Boda Agus & Nico'",
   },
   {
     bank: "Santander",
-    holder: "Nicolás Gómez",
+    holder: "Nicolas Gomez",
     currency: "USD",
     accountType: "Cuenta",
     accountNumber: "001-987654-3",
     aliasOrIBAN: "UY00 0001 0987 6543 0000",
-    notes: "Muchas gracias por su regalo ❤",
+    notes: "Muchas gracias por su regalo",
   },
 ];
 
 // ==========================
-// Utilidades
+// Utils
 // ==========================
 function classNames(...xs) {
   return xs.filter(Boolean).join(" ");
 }
 
-const lsKey = (key) => `wedding_site_${key}`;
-
-function useLocalStorage(key, initialValue) {
-  const [value, setValue] = useState(() => {
-    try {
-      const raw = localStorage.getItem(lsKey(key));
-      return raw ? JSON.parse(raw) : initialValue;
-    } catch {
-      return initialValue;
-    }
-  });
-  useEffect(() => {
-    try {
-      localStorage.setItem(lsKey(key), JSON.stringify(value));
-    } catch {}
-  }, [key, value]);
-  return [value, setValue];
-}
-
 function usePrimaryColor(hex) {
   const css = useMemo(
-    () => `:root { --primary: ${hex}; --primary-600: ${hex}; }`,
+    () => `
+:root { --primary: ${hex}; --primary-600: ${hex}; }
+`,
     [hex]
   );
+
   useEffect(() => {
     const style = document.createElement("style");
+    style.setAttribute("data-wedding-styles", "");
     style.innerHTML = css;
     document.head.appendChild(style);
     return () => document.head.removeChild(style);
@@ -136,7 +92,7 @@ function usePrimaryColor(hex) {
 }
 
 // ==========================
-// Componentes
+// UI
 // ==========================
 function Nav() {
   return (
@@ -249,14 +205,12 @@ function GiftCard({ gift, reserved, onToggle }) {
 }
 
 function Gifts() {
-  const [reservations, setReservations] = useLocalStorage("reservations", {});
-
-  const toggleReservation = (id) => {
+  const [reservations, setReservations] = useState({});
+  const toggleReservation = (id) =>
     setReservations((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
 
   const shareMessage = encodeURIComponent(
-    `Te compartimos nuestra lista de regalos: ${window.location.href} \n¡Gracias por acompañarnos!`
+    `Te compartimos nuestra lista de regalos: ${window.location.href}\n¡Gracias por acompañarnos!`
   );
 
   return (
@@ -295,21 +249,17 @@ function Gifts() {
             />
           ))}
         </div>
-
-        <p className="text-xs text-black/50 mt-4">
-          * Las reservas se guardan en tu dispositivo. Para un sistema de reservas real compartido, necesitás un backend (p. ej., Supabase, Firebase o una Google Sheet con API).
-        </p>
       </div>
     </section>
   );
 }
 
-function copy(text) {
-  navigator.clipboard.writeText(text).catch(() => {});
-}
-
 function AccountRow({ a }) {
-  const toCopy = `${a.bank} · ${a.accountType} (${a.currency})\nTitular: ${a.holder}\nCuenta: ${a.accountNumber}\nIBAN/Alias: ${a.aliasOrIBAN || "-"}\n${a.notes || ""}`.trim();
+  const toCopy = `${a.bank} · ${a.accountType} (${a.currency})
+Titular: ${a.holder}
+Cuenta: ${a.accountNumber}
+IBAN/Alias: ${a.aliasOrIBAN || "-"}
+${a.notes || ""}`.trim();
   return (
     <div className="rounded-2xl border border-black/10 p-4 bg-white flex flex-col md:flex-row md:items-center md:justify-between gap-3">
       <div>
@@ -321,7 +271,7 @@ function AccountRow({ a }) {
       </div>
       <div className="flex gap-2">
         <button
-          onClick={() => copy(toCopy)}
+          onClick={() => navigator.clipboard.writeText(toCopy)}
           className="px-3 py-2 rounded-xl text-sm border border-black/10 hover:bg-black/5"
         >
           Copiar datos
@@ -337,13 +287,8 @@ function Deposits() {
       <div className="mx-auto max-w-6xl px-4">
         <h2 className="text-2xl md:text-3xl font-bold mb-6">Depósitos / Transferencias</h2>
         <div className="space-y-4">
-          {ACCOUNTS.map((a, i) => (
-            <AccountRow key={i} a={a} />
-          ))}
+          {ACCOUNTS.map((a, i) => <AccountRow key={i} a={a} />)}
         </div>
-        <p className="text-xs text-black/50 mt-4">
-          * Si necesitás otro método (Mercado Pago, PayPal, etc.), agregalo como una cuenta más o dejá un mensaje aquí.
-        </p>
       </div>
     </section>
   );
@@ -353,9 +298,7 @@ function Footer() {
   return (
     <footer className="border-t border-black/5 py-10 bg-white">
       <div className="mx-auto max-w-6xl px-4 text-sm text-black/60 flex flex-col md:flex-row items-center justify-between gap-2">
-        <p>
-          Con cariño, {SITE_CONFIG.coupleNames}. · {SITE_CONFIG.dateLabel}
-        </p>
+        <p>Con cariño, {SITE_CONFIG.coupleNames}. · {SITE_CONFIG.dateLabel}</p>
         <a href="#inicio" className="underline underline-offset-4">Volver arriba</a>
       </div>
     </footer>
@@ -371,12 +314,6 @@ export default function WeddingSite() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 font-[system-ui]">
-      {/* Tailwind CDN (solo para previsualización en Canvas). En producción, instalá Tailwind correctamente. */}
-      <link
-        href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
-        rel="stylesheet"
-      />
-
       <Nav />
       <Hero />
       <Gifts />
