@@ -172,29 +172,33 @@ function Hero() {
           alt="Foto de los novios"
           className="absolute inset-0 w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-black/30" />
+
+        {/* 🔽 antes: bg-black/30 —> ahora más suave para que el vidrio destaque */}
+        <div className="absolute inset-0 bg-black/15" />
 
         {/* tarjeta */}
         <div className="relative z-10 w-full mx-auto max-w-lg sm:max-w-3xl">
-          <div className="bg-black/50 backdrop-blur-md rounded-2xl sm:rounded-3xl p-4 sm:p-8 md:p-10 shadow-lg border border-white/10 text-center text-white">
-            <p className="uppercase tracking-[0.2em] text-xs sm:text-sm text-white/70 mb-1 sm:mb-2">
+          {/* 🔽 vidrio: fallback compatible (bg-white bg-opacity-20) + blur + borde */}
+          <div className="bg-white bg-opacity-20 backdrop-blur-lg rounded-2xl sm:rounded-3xl p-4 sm:p-8 md:p-10 shadow-xl border border-white/30 text-center text-white">
+            <p className="uppercase tracking-[0.2em] text-xs sm:text-sm text-white/80 mb-1 sm:mb-2">
               ¡Nos casamos!
             </p>
-            <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold leading-tight">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold leading-tight drop-shadow">
               {SITE_CONFIG.coupleNames}
             </h1>
-            <p className="mt-2 sm:mt-3 text-base sm:text-xl md:text-2xl text-white/80">
+            <p className="mt-2 sm:mt-3 text-base sm:text-xl md:text-2xl text-white/90 drop-shadow">
               {SITE_CONFIG.dateLabel} · {SITE_CONFIG.timeLabel}
             </p>
 
-            {/* 👉 mobile = venueName, desktop = cityAndCountry */}
-            <p className="text-white/70 text-sm sm:text-base">
+            {/* mobile = venueName, desktop = cityAndCountry */}
+            <p className="text-white/85 text-sm sm:text-base drop-shadow">
               <span className="sm:hidden">{SITE_CONFIG.venueName}</span>
               <span className="hidden sm:inline">{SITE_CONFIG.cityAndCountry}</span>
             </p>
 
             <div className="mt-3 sm:mt-5 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-              <span className="hidden sm:inline-flex items-center gap-2 text-sm px-3 py-2 rounded-full bg-white/10">
+              <span className="hidden sm:inline-flex items-center gap-2 text-sm px-3 py-2 rounded-full bg-white bg-opacity-20 backdrop-blur-sm">
+                {/* icono */}
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
                   <path d="M12 2.25c-4.97 0-9 3.89-9 8.687 0 2.615 1.282 5.039 3.516 6.79L12 21.75l5.484-3.99c2.234-1.75 3.516-4.174 3.516-6.79 0-4.797-4.03-8.687-9-8.687Z"/>
                 </svg>
@@ -204,7 +208,7 @@ function Hero() {
                 href={SITE_CONFIG.mapsUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="text-xs sm:text-sm underline underline-offset-4 hover:opacity-80"
+                className="text-xs sm:text-sm underline underline-offset-4 hover:opacity-90"
               >
                 {SITE_CONFIG.venueAddress}
               </a>
@@ -215,7 +219,6 @@ function Hero() {
     </section>
   );
 }
-
 
 function GiftCard({ gift, reserved, reservedInfo, onToggle }) {
   return (
