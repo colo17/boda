@@ -162,13 +162,13 @@ function Nav() {
 function Hero() {
   return (
     <section id="inicio" className="relative">
-      {/* ahora ocupa toda la pantalla */}
-      <div className="relative h-screen flex items-center justify-center">
+      {/* ahora ocupa toda la pantalla en desktop, pero más chico en móvil */}
+      <div className="relative h-[60vh] sm:h-screen flex items-center justify-center">
         {/* imagen de fondo */}
         <img
           src={SITE_CONFIG.heroImageUrl}
           alt="Foto de los novios"
-          className="absolute inset-0 h-full w-full object-cover object-center"
+          className="absolute inset-0 w-full h-full object-cover sm:object-cover object-center"
         />
         {/* overlay global opcional para oscurecer un poco toda la foto */}
         <div className="absolute inset-0 bg-black/30" />
@@ -260,8 +260,8 @@ function GiftCard({ gift, reserved, reservedInfo, onToggle }) {
       </div>
 
       {reserved && (
-        <div className="absolute top-3 right-3 rounded-full px-3 py-1 text-xs bg-white/90 border border-black/5 shadow">
-          ✅ Reservado
+        <div className="absolute top-3 right-3 rounded-full px-3 py-1 text-xs font-medium bg-white text-green-600 border border-green-500 shadow">
+    ✅ Reservado
         </div>
       )}
     </div>
@@ -545,11 +545,20 @@ function ReservationModal({ open, gift, name, note, setName, setNote, onCancel, 
 }
 
 function AccountRow({ a }) {
+  const [copied, setCopied] = useState(false);
+
   const toCopy = `${a.bank} · ${a.accountType} (${a.currency})
 Titular: ${a.holder}
 Cuenta: ${a.accountNumber}
 IBAN/Alias: ${a.aliasOrIBAN || "-"}
 ${a.notes || ""}`.trim();
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(toCopy);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000); // vuelve a "Copiar datos" después de 2s
+  };
+
   return (
     <div className="rounded-2xl border border-black/10 p-4 bg-white flex flex-col md:flex-row md:items-center md:justify-between gap-3">
       <div>
@@ -565,10 +574,14 @@ ${a.notes || ""}`.trim();
       </div>
       <div className="flex gap-2">
         <button
-          onClick={() => navigator.clipboard.writeText(toCopy)}
-          className="px-3 py-2 rounded-xl text-sm border border-black/10 hover:bg-black/5"
+          onClick={handleCopy}
+          className={`px-3 py-2 rounded-xl text-sm border transition ${
+            copied
+              ? "bg-green-500 text-white border-green-600"
+              : "border-black/10 hover:bg-black/5"
+          }`}
         >
-          Copiar datos
+          {copied ? "Copiado ✅" : "Copiar datos"}
         </button>
       </div>
     </div>
