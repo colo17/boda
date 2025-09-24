@@ -76,7 +76,7 @@ const ACCOUNTS = [
     accountType: "Caja de Ahorro",
     accountNumber: "000123456-7",
     aliasOrIBAN: "UY00 0000 0001 2345 6700",
-    notes: "Regalo Boda Flo & Cica",
+    notes: "Regalo Boda de Tu Nombre",
   },
   {
     bank: "Santander",
@@ -85,7 +85,7 @@ const ACCOUNTS = [
     accountType: "Cuenta",
     accountNumber: "001-987654-3",
     aliasOrIBAN: "UY00 0001 0987 6543 0000",
-    notes: "Regalo Boda Flo & Cica",
+    notes: "Regalo Boda de Tu Nombre",
   },
 ];
 
@@ -632,6 +632,7 @@ function ThankYouModal({ open, onClose, gift }) {
 
         <div className="mt-4 space-y-3 max-h-[60vh] overflow-y-auto pr-1">
           {ACCOUNTS.map((a, i) => (
+            // 👇 le pasamos el gift completo para que AccountRow use gift.title
             <AccountRow key={i} a={a} gift={gift} />
           ))}
         </div>
@@ -649,12 +650,18 @@ function ThankYouModal({ open, onClose, gift }) {
   );
 }
 
-function AccountRow({ a }) {
-  // Texto que se copia (sin IBAN)
+function AccountRow({ a, gift }) {
+  // Si viene gift, usamos "Nombre del regalo · Boda Flo & Cica".
+  // Si no, usamos lo que haya en a.notes (para la sección Depósitos fuera del modal).
+  const referenceText = gift?.title
+    ? `${gift.title} · Regalo Boda Flo y Cica · de Tu Nombre`
+    : (a.notes || "");
+
+  // Texto a copiar (sin IBAN)
   const toCopy = `${a.bank} · ${a.accountType} (${a.currency})
 Titular: ${a.holder}
 Cuenta: ${a.accountNumber}
-${a.notes ? `Referencia: ${a.notes}` : ""}`.trim();
+${referenceText ? `Referencia: ${referenceText}` : ""}`.trim();
 
   const [copied, setCopied] = useState(false);
 
@@ -664,7 +671,7 @@ ${a.notes ? `Referencia: ${a.notes}` : ""}`.trim();
       setCopied(true);
       setTimeout(() => setCopied(false), 1600);
     } catch {
-      // Fallback (por si clipboard falla)
+      // Fallback
       const ta = document.createElement("textarea");
       ta.value = toCopy;
       ta.style.position = "fixed";
@@ -686,8 +693,10 @@ ${a.notes ? `Referencia: ${a.notes}` : ""}`.trim();
         </p>
         <p className="text-sm text-black/70">Titular: {a.holder}</p>
         <p className="text-sm text-black/70">Cuenta: {a.accountNumber}</p>
-        {a.notes && (
-          <p className="text-xs text-black/60 mt-1">Referencia: {a.notes}</p>
+        {referenceText && (
+          <p className="text-xs text-black/60 mt-1">
+            Referencia: {referenceText}
+          </p>
         )}
       </div>
 
