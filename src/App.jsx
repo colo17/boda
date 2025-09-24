@@ -5,15 +5,14 @@ import { createClient } from "@supabase/supabase-js";
 // Config editable
 // ==========================
 const SITE_CONFIG = {
-  coupleNames: "Agus & Nico",
-  dateLabel: "Sábado 27 de diciembre de 2025",
-  timeLabel: "19:30 hs",
-  venueName: "Estancia La Magnolia",
-  venueAddress: "Camino de los Molinos s/n, Canelones",
+  coupleNames: "Flo & Bruno",
+  dateLabel: "Sábado 29 de Noviembre de 2025",
+  timeLabel: "18:00 hs",
+  venueName: "Finca Clara",
+  venueAddress: "San Juan 5072, 91001 Gral. Líber Seregni, Departamento de Canelones",
   mapsUrl:
-    "https://maps.google.com/?q=Estancia%20La%20Magnolia%20Camino%20de%20los%20Molinos",
-  heroImageUrl:
-    "https://images.unsplash.com/photo-1496439786094-e697ca3584f2?q=80&w=2068&auto=format&fit=crop",
+    "https://maps.app.goo.gl/sYWUJTQiaP9WhPLr5",
+  heroImageUrl: "/images/cicatrica.jpg",
   cityAndCountry: "Canelones, Uruguay",
   primaryColor: "#8b5cf6",
 };
@@ -25,8 +24,7 @@ const GIFTS = [
     price: 65,
     currency: "USD",
     url: "#",
-    image:
-      "https://images.unsplash.com/photo-1527960471264-932f39eb5840?q=80&w=2070&auto=format&fit=crop",
+    image: "/images/copas.jpg",
   },
   {
     id: "g2",
@@ -34,8 +32,7 @@ const GIFTS = [
     price: 80,
     currency: "USD",
     url: "#",
-    image:
-      "https://images.unsplash.com/photo-1603178456212-4059e416c4d1?q=80&w=2071&auto=format&fit=crop",
+    image: "/images/toallas.jpg",
   },
   {
     id: "g3",
@@ -43,29 +40,52 @@ const GIFTS = [
     price: 100,
     currency: "USD",
     url: "#",
-    image:
-      "https://images.unsplash.com/photo-1526772662000-3f88f10405ff?q=80&w=2070&auto=format&fit=crop",
+    image: "/images/cica1.jpg",
+  },
+  {
+    id: "g4",
+    title: "Juego de copas de cristal",
+    price: 65,
+    currency: "USD",
+    url: "#",
+    image: "/images/copas.jpg",
+  },
+  {
+    id: "g5",
+    title: "Set de toallas premium",
+    price: 80,
+    currency: "USD",
+    url: "#",
+    image: "/images/toallas.jpg",
+  },
+  {
+    id: "g6",
+    title: "Aporte para luna de miel",
+    price: 100,
+    currency: "USD",
+    url: "#",
+    image: "/images/cica2.jpg",
   },
 ];
 
 const ACCOUNTS = [
   {
     bank: "BROU",
-    holder: "Agustina Perez",
+    holder: "Florencia Scarabino",
     currency: "UYU",
     accountType: "Caja de Ahorro",
     accountNumber: "000123456-7",
     aliasOrIBAN: "UY00 0000 0001 2345 6700",
-    notes: "Referencia: 'Regalo Boda Agus & Nico'",
+    notes: "Referencia: 'Regalo Boda Flo & Bruno'",
   },
   {
     bank: "Santander",
-    holder: "Nicolas Gomez",
+    holder: "Bruno Cicatiello",
     currency: "USD",
     accountType: "Cuenta",
     accountNumber: "001-987654-3",
     aliasOrIBAN: "UY00 0001 0987 6543 0000",
-    notes: "Muchas gracias por su regalo",
+    notes: "Referencia: 'Regalo Boda Flo & Bruno'",
   },
 ];
 
@@ -104,12 +124,18 @@ function usePrimaryColor(hex) {
 // ==========================
 function Nav() {
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 backdrop-blur bg-white/70 border-b border-black/5">
+    <header className="fixed top-0 left-0 right-0 z-40 bg-white shadow-sm border-b border-black/10">
       <nav className="mx-auto max-w-6xl flex items-center justify-between px-4 py-3">
+        {/* Nombre de la pareja */}
         <a href="#inicio" className="font-semibold tracking-wide">
           {SITE_CONFIG.coupleNames}
         </a>
+
+        {/* Menú */}
         <div className="hidden md:flex gap-6 text-sm">
+          <a href="#inicio" className="hover:opacity-80">
+            Inicio
+          </a>
           <a href="#regalos" className="hover:opacity-80">
             Regalos
           </a>
@@ -117,6 +143,8 @@ function Nav() {
             Depósitos
           </a>
         </div>
+
+        {/* Botón ubicación */}
         <a
           href={SITE_CONFIG.mapsUrl}
           target="_blank"
@@ -133,48 +161,48 @@ function Nav() {
 
 function Hero() {
   return (
-    <section id="inicio" className="relative pt-20">
-      <div className="absolute inset-0 -z-10">
+    <section id="inicio" className="relative">
+      {/* ahora ocupa toda la pantalla */}
+      <div className="relative h-screen flex items-center justify-center">
+        {/* imagen de fondo */}
         <img
           src={SITE_CONFIG.heroImageUrl}
           alt="Foto de los novios"
-          className="h-[70vh] w-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover object-center"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-white to-white/20" />
-      </div>
+        {/* overlay global opcional para oscurecer un poco toda la foto */}
+        <div className="absolute inset-0 bg-black/30" />
 
-      <div className="mx-auto max-w-6xl px-4 py-16 md:py-24">
-        <div className="bg-white/80 backdrop-blur rounded-3xl p-6 md:p-10 shadow-lg border border-black/5">
-          <p className="uppercase tracking-[0.2em] text-xs md:text-sm text-black/60 mb-2">
-            ¡Nos casamos!
-          </p>
-          <h1 className="text-3xl md:text-5xl font-bold leading-tight">
-            {SITE_CONFIG.coupleNames}
-          </h1>
-          <p className="mt-3 text-lg md:text-xl text-black/70">
-            {SITE_CONFIG.dateLabel} · {SITE_CONFIG.timeLabel}
-          </p>
-          <p className="text-black/70">{SITE_CONFIG.cityAndCountry}</p>
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <span className="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-full bg-black/5">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className="w-4 h-4"
+        {/* tarjeta de texto centrada */}
+        <div className="relative z-10 w-full mx-auto max-w-3xl px-4">
+          <div className="bg-black/50 backdrop-blur-md rounded-3xl p-6 md:p-10 shadow-lg border border-white/10 text-center text-white">
+            <p className="uppercase tracking-[0.2em] text-xs md:text-sm text-white/70 mb-2">
+              ¡Nos casamos!
+            </p>
+            <h1 className="text-4xl md:text-6xl font-bold leading-tight">
+              {SITE_CONFIG.coupleNames}
+            </h1>
+            <p className="mt-3 text-lg md:text-2xl text-white/80">
+              {SITE_CONFIG.dateLabel} · {SITE_CONFIG.timeLabel}
+            </p>
+            <p className="text-white/70">{SITE_CONFIG.cityAndCountry}</p>
+
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+              <span className="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-full bg-white/10">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                  <path d="M12 2.25c-4.97 0-9 3.89-9 8.687 0 2.615 1.282 5.039 3.516 6.79L12 21.75l5.484-3.99c2.234-1.75 3.516-4.174 3.516-6.79 0-4.797-4.03-8.687-9-8.687Z"/>
+                </svg>
+                {SITE_CONFIG.venueName}
+              </span>
+              <a
+                href={SITE_CONFIG.mapsUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm underline underline-offset-4 hover:opacity-80"
               >
-                <path d="M12 2.25c-4.97 0-9 3.89-9 8.687 0 2.615 1.282 5.039 3.516 6.79L12 21.75l5.484-3.99c2.234-1.75 3.516-4.174 3.516-6.79 0-4.797-4.03-8.687-9-8.687Z" />
-              </svg>
-              {SITE_CONFIG.venueName}
-            </span>
-            <a
-              href={SITE_CONFIG.mapsUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="text-sm underline underline-offset-4 hover:opacity-80"
-            >
-              {SITE_CONFIG.venueAddress}
-            </a>
+                {SITE_CONFIG.venueAddress}
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -182,22 +210,26 @@ function Hero() {
   );
 }
 
-function GiftCard({ gift, reserved, onToggle }) {
+function GiftCard({ gift, reserved, reservedInfo, onToggle }) {
   return (
-    <div className="group relative overflow-hidden rounded-3xl border border-black/5 bg-white shadow-sm">
-      <div className="aspect-[4/3] w-full overflow-hidden">
+    <div className="group relative flex flex-col overflow-hidden rounded-3xl border border-black/5 bg-white shadow-sm">
+      {/* Bloque de imagen: ALTURA FIJA */}
+      <div className="relative w-full h-60 overflow-hidden bg-gray-50 shrink-0">
         <img
           src={gift.image}
           alt={gift.title}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
       </div>
-      <div className="p-4">
+
+      {/* Contenido */}
+      <div className="flex flex-col flex-1 p-4">
         <h3 className="font-semibold text-lg">{gift.title}</h3>
         <p className="text-black/60 text-sm">
           {gift.currency} {gift.price}
         </p>
-        <div className="mt-3 flex gap-2">
+
+        <div className="mt-auto pt-3 flex gap-2">
           <a
             href={gift.url}
             target="_blank"
@@ -206,6 +238,7 @@ function GiftCard({ gift, reserved, onToggle }) {
           >
             Ver referencia
           </a>
+
           <button
             onClick={onToggle}
             className={classNames(
@@ -214,10 +247,18 @@ function GiftCard({ gift, reserved, onToggle }) {
             )}
             style={{ backgroundColor: "var(--primary)" }}
           >
-            {reserved ? "Reservado" : "Quiero regalar este"}
+            {reserved ? "Cancelar Reserva" : "Reservar"}
           </button>
         </div>
+
+        {reserved && reservedInfo && (
+          <p className="mt-2 text-xs text-black/60">
+            Reservado por <strong>{reservedInfo.reserved_by || "Invitado"}</strong>
+            {reservedInfo.note ? ` — “${reservedInfo.note}”` : ""}
+          </p>
+        )}
       </div>
+
       {reserved && (
         <div className="absolute top-3 right-3 rounded-full px-3 py-1 text-xs bg-white/90 border border-black/5 shadow">
           ✅ Reservado
@@ -231,16 +272,19 @@ function Gifts() {
   const [reservations, setReservations] = useState({}); // { [giftId]: { reserved_by, note, created_at } }
   const [loading, setLoading] = useState(false);
 
-  // Estado del modal
+  // Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [activeGift, setActiveGift] = useState(null);
   const [guestName, setGuestName] = useState("");
   const [guestNote, setGuestNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // Cargar reservas existentes + suscripción en tiempo real
+  // Desbloqueo
+  const [releasingId, setReleasingId] = useState(null);
+
+  // Cargar reservas + realtime
   useEffect(() => {
-    if (!supabase) return; // si no configuraste .env, funciona en modo local sin tiempo real
+    if (!supabase) return;
 
     (async () => {
       setLoading(true);
@@ -250,7 +294,11 @@ function Gifts() {
       if (!error && data) {
         const map = {};
         data.forEach((r) => {
-          map[r.gift_id] = { reserved_by: r.reserved_by, note: r.note, created_at: r.created_at };
+          map[r.gift_id] = {
+            reserved_by: r.reserved_by,
+            note: r.note,
+            created_at: r.created_at,
+          };
         });
         setReservations(map);
       }
@@ -267,7 +315,11 @@ function Gifts() {
             const r = payload.new;
             setReservations((prev) => ({
               ...prev,
-              [r.gift_id]: { reserved_by: r.reserved_by, note: r.note, created_at: r.created_at },
+              [r.gift_id]: {
+                reserved_by: r.reserved_by,
+                note: r.note,
+                created_at: r.created_at,
+              },
             }));
           } else if (payload.eventType === "DELETE") {
             const r = payload.old;
@@ -286,12 +338,15 @@ function Gifts() {
     };
   }, []);
 
-  // CLICK reservar -> abre modal (si hay Supabase). En modo sin servidor, marca localmente.
   const onReserveClick = (gift) => {
     if (!supabase) {
       setReservations((prev) => ({
         ...prev,
-        [gift.id]: { reserved_by: "Invitado", note: "", created_at: new Date().toISOString() },
+        [gift.id]: {
+          reserved_by: "Invitado",
+          note: "",
+          created_at: new Date().toISOString(),
+        },
       }));
       return;
     }
@@ -301,85 +356,78 @@ function Gifts() {
     setModalOpen(true);
   };
 
-  // Confirmar reserva (guarda en Supabase)
   const confirmReserve = async () => {
-  if (!activeGift) return;
-  setSubmitting(true);
-  try {
-    const payload = {
-      gift_id: activeGift.id,
-      reserved_by: guestName.trim() || "Invitado",
-      note: guestNote.trim() || null,
-    };
+    if (!activeGift) return;
+    setSubmitting(true);
+    try {
+      const payload = {
+        gift_id: activeGift.id,
+        reserved_by: guestName.trim() || "Invitado",
+        note: guestNote.trim() || null,
+      };
 
-    // Guarda en Supabase
-    const { error } = await supabase.from("reservations").upsert(payload);
-    if (error) throw error;
+      const { error } = await supabase.from("reservations").upsert(payload);
+      if (error) throw error;
 
-    // ✅ Update optimista en UI (no esperamos realtime)
-    setReservations(prev => ({
-      ...prev,
-      [activeGift.id]: {
-        reserved_by: payload.reserved_by,
-        note: payload.note,
-        created_at: new Date().toISOString(),
-      },
-    }));
+      // Update optimista
+      setReservations((prev) => ({
+        ...prev,
+        [activeGift.id]: {
+          reserved_by: payload.reserved_by,
+          note: payload.note,
+          created_at: new Date().toISOString(),
+        },
+      }));
 
-    setModalOpen(false);
-    setActiveGift(null);
-  } catch (e) {
-    console.error("SUPABASE UPSERT ERROR", e);
-    alert(`No se pudo guardar la reserva: ${e.message || e}`);
-  } finally {
-    setSubmitting(false);
-  }
-};
-
-  // Liberar un regalo (borra la fila)
- const [releasingId, setReleasingId] = useState(null); // opcional: para deshabilitar botón
-
-const releaseGift = async (giftId) => {
-  const ok = confirm("¿Seguro que querés liberar este regalo?");
-  if (!ok) return;
-
-  // 🔒 deshabilitar botón mientras libera (opcional)
-  setReleasingId(giftId);
-
-  // ✅ update optimista: quitamos del estado primero
-  const prev = reservations[giftId];
-  setReservations((cur) => {
-    const clone = { ...cur };
-    delete clone[giftId];
-    return clone;
-  });
-
-  try {
-    const { error } = await supabase
-      .from("reservations")
-      .delete()
-      .eq("gift_id", giftId);
-
-    if (error) {
-      // ❌ revertir si falla
-      setReservations((cur) => ({ ...cur, [giftId]: prev }));
-      alert(`No se pudo liberar: ${error.message}`);
-    } else {
-      // (Opcional) refetch puntual como “seguro”
-      // await supabase.from("reservations").select("gift_id").eq("gift_id", giftId).single();
-      // si vuelve 404, ya está liberado; no hace falta tocar el estado
+      setModalOpen(false);
+      setActiveGift(null);
+    } catch (e) {
+      console.error("SUPABASE UPSERT ERROR", e);
+      alert(`No se pudo guardar la reserva: ${e.message || e}`);
+    } finally {
+      setSubmitting(false);
     }
-  } finally {
-    setReleasingId(null);
-  }
-};
+  };
+
+  const releaseGift = async (giftId) => {
+    const ok = confirm("¿Seguro que querés liberar este regalo?");
+    if (!ok) return;
+
+    setReleasingId(giftId);
+
+    // Optimista
+    const prev = reservations[giftId];
+    setReservations((cur) => {
+      const clone = { ...cur };
+      delete clone[giftId];
+      return clone;
+    });
+
+    try {
+      const { error } = await supabase
+        .from("reservations")
+        .delete()
+        .eq("gift_id", giftId);
+
+      if (error) {
+        // revertir
+        setReservations((cur) => ({ ...cur, [giftId]: prev }));
+        alert(`No se pudo liberar: ${error.message}`);
+      }
+    } finally {
+      setReleasingId(null);
+    }
+  };
 
   const shareMessage = encodeURIComponent(
     `Te compartimos nuestra lista de regalos: ${window.location.href}\n¡Gracias por acompañarnos!`
   );
 
   return (
-    <section id="regalos" className="scroll-mt-24 py-16 md:py-24 bg-gradient-to-b from-white to-black/[0.02]">
+    <section
+      id="regalos"
+      className="scroll-mt-24 py-16 md:py-24 bg-gradient-to-b from-white to-black/[0.02]"
+    >
       <div className="mx-auto max-w-6xl px-4">
         <div className="flex items-end justify-between gap-4 mb-6">
           <div>
@@ -390,7 +438,9 @@ const releaseGift = async (giftId) => {
                 ? "Las reservas se sincronizan para todos en tiempo real."
                 : "*(Modo sin servidor: las reservas solo se guardan en este navegador)*"}
             </p>
-            {loading && <p className="text-sm text-black/60 mt-1">Cargando reservas…</p>}
+            {loading && (
+              <p className="text-sm text-black/60 mt-1">Cargando reservas…</p>
+            )}
           </div>
           <div className="flex gap-2">
             <a
@@ -410,63 +460,21 @@ const releaseGift = async (giftId) => {
           </div>
         </div>
 
+        {/* Grilla de tarjetas usando GiftCard (todas con la misma altura de imagen) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {GIFTS.map((gift) => {
             const r = reservations[gift.id];
             const isReserved = !!r;
             return (
-              <div key={gift.id} className="group relative overflow-hidden rounded-3xl border border-black/5 bg-white shadow-sm">
-                <div className="aspect-[4/3] w-full overflow-hidden">
-                  <img src={gift.image} alt={gift.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-lg">{gift.title}</h3>
-                  <p className="text-black/60 text-sm">
-                    {gift.currency} {gift.price}
-                  </p>
-                  <div className="mt-3 flex gap-2">
-                    <a
-                      href={gift.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="px-3 py-2 rounded-xl text-sm border border-black/10 hover:bg-black/5"
-                    >
-                      Ver referencia
-                    </a>
-                    
-                    {isReserved ? (
-                      <button
-                        onClick={() => releaseGift(gift.id)}
-                        className="px-3 py-2 rounded-xl text-sm text-white"
-                        style={{ backgroundColor: "var(--primary)" }}
-                      >
-                        Cancelar Reserva
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => onReserveClick(gift)}
-                        className="px-3 py-2 rounded-xl text-sm text-white"
-                        style={{ backgroundColor: "var(--primary)" }}
-                      >
-                        Reservar
-                      </button>
-                    )}
-                  </div>
-
-                  {isReserved && (
-                    <p className="text-xs text-black/60 mt-2">
-                      Reservado por <strong>{r.reserved_by || "Invitado"}</strong>
-                      {r.note ? ` — “${r.note}”` : ""}
-                    </p>
-                  )}
-                </div>
-
-                {isReserved && (
-                  <div className="absolute top-3 right-3 rounded-full px-3 py-1 text-xs bg-white/90 border border-black/5 shadow">
-                    ✅ Reservado
-                  </div>
-                )}
-              </div>
+              <GiftCard
+                key={gift.id}
+                gift={gift}
+                reserved={isReserved}
+                reservedInfo={r}
+                onToggle={() =>
+                  isReserved ? releaseGift(gift.id) : onReserveClick(gift)
+                }
+              />
             );
           })}
         </div>
