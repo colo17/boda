@@ -1,0 +1,387 @@
+import { useEffect, useMemo, useState } from "react";
+
+/**
+ * Plantilla single‑page para boda (3 secciones):
+ * 1) Portada (foto grande + título + fecha/hora + lugar)
+ * 2) Lista de regalos (los invitados eligen qué regalar y pueden marcarlo como reservado)
+ * 3) Depósitos / datos bancarios (con copiar al portapapeles)
+ *
+ * ✅ 100% responsive, estética moderna (Tailwind CSS)
+ * ✅ Navegación con scroll suave
+ * ✅ Estados guardados en localStorage (regalos reservados)
+ * ✅ Botones compartir por WhatsApp / email (opcional)
+ *
+ * 👉 Cómo usar:
+ *  - Cambiá el contenido dentro de "SITE_CONFIG", "GIFTS" y "ACCOUNTS".
+ *  - Reemplazá la imagen de portada por una tuya (heroImageUrl).
+ *  - Publicá en Vercel/Netlify/GitHub Pages.
+ */
+
+// ==========================
+// Configuración editable
+// ==========================
+const SITE_CONFIG = {
+  coupleNames: "Agus & Nico",
+  dateLabel: "Sábado 27 de diciembre de 2025",
+  timeLabel: "19:30 hs",
+  venueName: "Estancia La Magnolia",
+  venueAddress: "Camino de los Molinos s/n, Canelones",
+  mapsUrl:
+    "https://maps.google.com/?q=Estancia%20La%20Magnolia%20Camino%20de%20los%20Molinos",
+  heroImageUrl:
+    "https://images.unsplash.com/photo-1496439786094-e697ca3584f2?q=80&w=2068&auto=format&fit=crop",
+  cityAndCountry: "Canelones, Uruguay",
+  primaryColor: "#8b5cf6", // violeta — podés cambiarlo
+};
+
+// Lista de regalos (podés poner precio, link de referencia y una imagen)
+const GIFTS = [
+  {
+    id: "g1",
+    title: "Juego de copas de cristal",
+    price: 65,
+    currency: "USD",
+    url: "https://ejemplo.com/copas",
+    image:
+      "https://images.unsplash.com/photo-1527960471264-932f39eb5840?q=80&w=2070&auto=format&fit=crop",
+  },
+  {
+    id: "g2",
+    title: "Set de toallas premium",
+    price: 80,
+    currency: "USD",
+    url: "https://ejemplo.com/toallas",
+    image:
+      "https://images.unsplash.com/photo-1603178456212-4059e416c4d1?q=80&w=2071&auto=format&fit=crop",
+  },
+  {
+    id: "g3",
+    title: "Aporte para luna de miel",
+    price: 100,
+    currency: "USD",
+    url: "https://ejemplo.com/luna-de-miel",
+    image:
+      "https://images.unsplash.com/photo-1526772662000-3f88f10405ff?q=80&w=2070&auto=format&fit=crop",
+  },
+  {
+    id: "g4",
+    title: "Cafetera espresso",
+    price: 150,
+    currency: "USD",
+    url: "https://ejemplo.com/cafetera",
+    image:
+      "https://images.unsplash.com/photo-1447933601403-0c6688de566e?q=80&w=2069&auto=format&fit=crop",
+  },
+];
+
+// Datos para depósitos / transferencias (agregá las cuentas que necesites)
+const ACCOUNTS = [
+  {
+    bank: "BROU",
+    holder: "Agustina Pérez",
+    currency: "UYU",
+    accountType: "Caja de Ahorro",
+    accountNumber: "000123456-7",
+    aliasOrIBAN: "UY00 0000 0001 2345 6700",
+    notes: "Referencia: ‘Regalo Boda Agus & Nico’",
+  },
+  {
+    bank: "Santander",
+    holder: "Nicolás Gómez",
+    currency: "USD",
+    accountType: "Cuenta",
+    accountNumber: "001-987654-3",
+    aliasOrIBAN: "UY00 0001 0987 6543 0000",
+    notes: "Muchas gracias por su regalo ❤",
+  },
+];
+
+// ==========================
+// Utilidades
+// ==========================
+function classNames(...xs) {
+  return xs.filter(Boolean).join(" ");
+}
+
+const lsKey = (key) => `wedding_site_${key}`;
+
+function useLocalStorage(key, initialValue) {
+  const [value, setValue] = useState(() => {
+    try {
+      const raw = localStorage.getItem(lsKey(key));
+      return raw ? JSON.parse(raw) : initialValue;
+    } catch {
+      return initialValue;
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(lsKey(key), JSON.stringify(value));
+    } catch {}
+  }, [key, value]);
+  return [value, setValue];
+}
+
+function usePrimaryColor(hex) {
+  const css = useMemo(
+    () => `:root { --primary: ${hex}; --primary-600: ${hex}; }`,
+    [hex]
+  );
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.innerHTML = css;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, [css]);
+}
+
+// ==========================
+// Componentes
+// ==========================
+function Nav() {
+  return (
+    <header className="fixed top-0 left-0 right-0 z-40 backdrop-blur bg-white/70 border-b border-black/5">
+      <nav className="mx-auto max-w-6xl flex items-center justify-between px-4 py-3">
+        <a href="#inicio" className="font-semibold tracking-wide">
+          {SITE_CONFIG.coupleNames}
+        </a>
+        <div className="hidden md:flex gap-6 text-sm">
+          <a href="#regalos" className="hover:opacity-80">Regalos</a>
+          <a href="#depositos" className="hover:opacity-80">Depósitos</a>
+        </div>
+        <a
+          href={SITE_CONFIG.mapsUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="text-white px-3 py-2 rounded-xl shadow-sm"
+          style={{ backgroundColor: "var(--primary)" }}
+        >
+          Ver ubicación
+        </a>
+      </nav>
+    </header>
+  );
+}
+
+function Hero() {
+  return (
+    <section id="inicio" className="relative pt-20">
+      <div className="absolute inset-0 -z-10">
+        <img
+          src={SITE_CONFIG.heroImageUrl}
+          alt="Foto de los novios"
+          className="h-[70vh] w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-white to-white/20" />
+      </div>
+
+      <div className="mx-auto max-w-6xl px-4 py-16 md:py-24">
+        <div className="bg-white/80 backdrop-blur rounded-3xl p-6 md:p-10 shadow-lg border border-black/5">
+          <p className="uppercase tracking-[0.2em] text-xs md:text-sm text-black/60 mb-2">
+            ¡Nos casamos!
+          </p>
+          <h1 className="text-3xl md:text-5xl font-bold leading-tight">
+            {SITE_CONFIG.coupleNames}
+          </h1>
+          <p className="mt-3 text-lg md:text-xl text-black/70">
+            {SITE_CONFIG.dateLabel} · {SITE_CONFIG.timeLabel}
+          </p>
+          <p className="text-black/70">{SITE_CONFIG.cityAndCountry}</p>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <span className="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-full bg-black/5">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M12 2.25c-4.97 0-9 3.89-9 8.687 0 2.615 1.282 5.039 3.516 6.79L12 21.75l5.484-3.99c2.234-1.75 3.516-4.174 3.516-6.79 0-4.797-4.03-8.687-9-8.687Z"/></svg>
+              {SITE_CONFIG.venueName}
+            </span>
+            <a
+              href={SITE_CONFIG.mapsUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-sm underline underline-offset-4 hover:opacity-80"
+            >
+              {SITE_CONFIG.venueAddress}
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function GiftCard({ gift, reserved, onToggle }) {
+  return (
+    <div className="group relative overflow-hidden rounded-3xl border border-black/5 bg-white shadow-sm">
+      <div className="aspect-[4/3] w-full overflow-hidden">
+        <img src={gift.image} alt={gift.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+      </div>
+      <div className="p-4">
+        <h3 className="font-semibold text-lg">{gift.title}</h3>
+        <p className="text-black/60 text-sm">
+          {gift.currency} {gift.price}
+        </p>
+        <div className="mt-3 flex gap-2">
+          <a
+            href={gift.url}
+            target="_blank"
+            rel="noreferrer"
+            className="px-3 py-2 rounded-xl text-sm border border-black/10 hover:bg-black/5"
+          >
+            Ver referencia
+          </a>
+          <button
+            onClick={onToggle}
+            className={classNames(
+              "px-3 py-2 rounded-xl text-sm text-white",
+              reserved ? "opacity-80" : "",
+            )}
+            style={{ backgroundColor: "var(--primary)" }}
+          >
+            {reserved ? "Reservado" : "Quiero regalar este"}
+          </button>
+        </div>
+      </div>
+      {reserved && (
+        <div className="absolute top-3 right-3 rounded-full px-3 py-1 text-xs bg-white/90 border border-black/5 shadow">
+          ✅ Reservado
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Gifts() {
+  const [reservations, setReservations] = useLocalStorage("reservations", {});
+
+  const toggleReservation = (id) => {
+    setReservations((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const shareMessage = encodeURIComponent(
+    `Te compartimos nuestra lista de regalos: ${window.location.href} \n¡Gracias por acompañarnos!`
+  );
+
+  return (
+    <section id="regalos" className="scroll-mt-24 py-16 md:py-24 bg-gradient-to-b from-white to-black/[0.02]">
+      <div className="mx-auto max-w-6xl px-4">
+        <div className="flex items-end justify-between gap-4 mb-6">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-bold">Regalos</h2>
+            <p className="text-black/60">Elegí uno para obsequiarnos. Podés marcarlo como reservado para que no se repita.</p>
+          </div>
+          <div className="flex gap-2">
+            <a
+              href={`https://wa.me/?text=${shareMessage}`}
+              target="_blank"
+              rel="noreferrer"
+              className="px-3 py-2 rounded-xl text-sm border border-black/10 hover:bg-black/5"
+            >
+              Compartir por WhatsApp
+            </a>
+            <a
+              href={`mailto:?subject=Lista%20de%20regalos&body=${shareMessage}`}
+              className="px-3 py-2 rounded-xl text-sm border border-black/10 hover:bg-black/5"
+            >
+              Compartir por Email
+            </a>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {GIFTS.map((gift) => (
+            <GiftCard
+              key={gift.id}
+              gift={gift}
+              reserved={!!reservations[gift.id]}
+              onToggle={() => toggleReservation(gift.id)}
+            />
+          ))}
+        </div>
+
+        <p className="text-xs text-black/50 mt-4">
+          * Las reservas se guardan en tu dispositivo. Para un sistema de reservas real compartido, necesitás un backend (p. ej., Supabase, Firebase o una Google Sheet con API).
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function copy(text) {
+  navigator.clipboard.writeText(text).catch(() => {});
+}
+
+function AccountRow({ a }) {
+  const toCopy = `${a.bank} · ${a.accountType} (${a.currency})\nTitular: ${a.holder}\nCuenta: ${a.accountNumber}\nIBAN/Alias: ${a.aliasOrIBAN || "-"}\n${a.notes || ""}`.trim();
+  return (
+    <div className="rounded-2xl border border-black/10 p-4 bg-white flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+      <div>
+        <p className="font-semibold">{a.bank} · {a.accountType} ({a.currency})</p>
+        <p className="text-sm text-black/70">Titular: {a.holder}</p>
+        <p className="text-sm text-black/70">Cuenta: {a.accountNumber}</p>
+        {a.aliasOrIBAN && <p className="text-sm text-black/70">IBAN/Alias: {a.aliasOrIBAN}</p>}
+        {a.notes && <p className="text-xs text-black/50 mt-1">{a.notes}</p>}
+      </div>
+      <div className="flex gap-2">
+        <button
+          onClick={() => copy(toCopy)}
+          className="px-3 py-2 rounded-xl text-sm border border-black/10 hover:bg-black/5"
+        >
+          Copiar datos
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Deposits() {
+  return (
+    <section id="depositos" className="scroll-mt-24 py-16 md:py-24">
+      <div className="mx-auto max-w-6xl px-4">
+        <h2 className="text-2xl md:text-3xl font-bold mb-6">Depósitos / Transferencias</h2>
+        <div className="space-y-4">
+          {ACCOUNTS.map((a, i) => (
+            <AccountRow key={i} a={a} />
+          ))}
+        </div>
+        <p className="text-xs text-black/50 mt-4">
+          * Si necesitás otro método (Mercado Pago, PayPal, etc.), agregalo como una cuenta más o dejá un mensaje aquí.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="border-t border-black/5 py-10 bg-white">
+      <div className="mx-auto max-w-6xl px-4 text-sm text-black/60 flex flex-col md:flex-row items-center justify-between gap-2">
+        <p>
+          Con cariño, {SITE_CONFIG.coupleNames}. · {SITE_CONFIG.dateLabel}
+        </p>
+        <a href="#inicio" className="underline underline-offset-4">Volver arriba</a>
+      </div>
+    </footer>
+  );
+}
+
+export default function WeddingSite() {
+  usePrimaryColor(SITE_CONFIG.primaryColor);
+
+  useEffect(() => {
+    document.documentElement.classList.add("scroll-smooth");
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-white text-gray-900 font-[system-ui]">
+      {/* Tailwind CDN (solo para previsualización en Canvas). En producción, instalá Tailwind correctamente. */}
+      <link
+        href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+        rel="stylesheet"
+      />
+
+      <Nav />
+      <Hero />
+      <Gifts />
+      <Deposits />
+      <Footer />
+    </div>
+  );
+}
