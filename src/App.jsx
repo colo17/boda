@@ -9,7 +9,7 @@ const SITE_CONFIG = {
   dateLabel: "Sábado 29 de Noviembre de 2025",
   timeLabel: "18:00 hs",
   venueName: "Finca Clara",
-  venueAddress: "San Juan 5072, 91001 Gral. Líber Seregni, Departamento de Canelones",
+  venueAddress: "San Juan 5072, 91001 Gral. Líber Seregni",
   mapsUrl:
     "https://maps.app.goo.gl/sYWUJTQiaP9WhPLr5",
   heroImageUrl: "/images/cicatrica.jpg",
@@ -186,8 +186,11 @@ function Hero() {
             <p className="mt-2 sm:mt-3 text-base sm:text-xl md:text-2xl text-white/80">
               {SITE_CONFIG.dateLabel} · {SITE_CONFIG.timeLabel}
             </p>
+
+            {/* 👉 mobile = venueName, desktop = cityAndCountry */}
             <p className="text-white/70 text-sm sm:text-base">
-              {SITE_CONFIG.cityAndCountry}
+              <span className="sm:hidden">{SITE_CONFIG.venueName}</span>
+              <span className="hidden sm:inline">{SITE_CONFIG.cityAndCountry}</span>
             </p>
 
             <div className="mt-3 sm:mt-5 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
@@ -212,6 +215,7 @@ function Hero() {
     </section>
   );
 }
+
 
 function GiftCard({ gift, reserved, reservedInfo, onToggle }) {
   return (
@@ -637,8 +641,10 @@ function Footer() {
   return (
     <footer className="border-t border-black/5 py-10 bg-white">
       <div className="mx-auto max-w-6xl px-4 text-sm text-black/60 flex flex-col md:flex-row items-center justify-between gap-2">
-        <p>
-          Con cariño, {SITE_CONFIG.coupleNames}. · {SITE_CONFIG.dateLabel}
+        <p className="text-center md:text-left">
+          Con cariño, {SITE_CONFIG.coupleNames}. · {SITE_CONFIG.dateLabel} · {SITE_CONFIG.timeLabel}
+          <br />
+          {SITE_CONFIG.venueName} · {SITE_CONFIG.cityAndCountry}
         </p>
         <a href="#inicio" className="underline underline-offset-4">
           Volver arriba
