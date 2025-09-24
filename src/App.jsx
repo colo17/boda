@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 
 // ==========================
 // Config editable
@@ -9,7 +10,8 @@ const SITE_CONFIG = {
   timeLabel: "19:30 hs",
   venueName: "Estancia La Magnolia",
   venueAddress: "Camino de los Molinos s/n, Canelones",
-  mapsUrl: "https://maps.google.com/?q=Estancia%20La%20Magnolia%20Camino%20de%20los%20Molinos",
+  mapsUrl:
+    "https://maps.google.com/?q=Estancia%20La%20Magnolia%20Camino%20de%20los%20Molinos",
   heroImageUrl:
     "https://images.unsplash.com/photo-1496439786094-e697ca3584f2?q=80&w=2068&auto=format&fit=crop",
   cityAndCountry: "Canelones, Uruguay",
@@ -68,11 +70,18 @@ const ACCOUNTS = [
 ];
 
 // ==========================
-// Utils
+// Utils + Supabase
 // ==========================
 function classNames(...xs) {
   return xs.filter(Boolean).join(" ");
 }
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnon = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabase =
+  supabaseUrl && supabaseAnon
+    ? createClient(supabaseUrl, supabaseAnon)
+    : null;
 
 function usePrimaryColor(hex) {
   const css = useMemo(
@@ -81,7 +90,6 @@ function usePrimaryColor(hex) {
 `,
     [hex]
   );
-
   useEffect(() => {
     const style = document.createElement("style");
     style.setAttribute("data-wedding-styles", "");
@@ -102,8 +110,12 @@ function Nav() {
           {SITE_CONFIG.coupleNames}
         </a>
         <div className="hidden md:flex gap-6 text-sm">
-          <a href="#regalos" className="hover:opacity-80">Regalos</a>
-          <a href="#depositos" className="hover:opacity-80">Depósitos</a>
+          <a href="#regalos" className="hover:opacity-80">
+            Regalos
+          </a>
+          <a href="#depositos" className="hover:opacity-80">
+            Depósitos
+          </a>
         </div>
         <a
           href={SITE_CONFIG.mapsUrl}
@@ -145,7 +157,14 @@ function Hero() {
           <p className="text-black/70">{SITE_CONFIG.cityAndCountry}</p>
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <span className="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-full bg-black/5">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M12 2.25c-4.97 0-9 3.89-9 8.687 0 2.615 1.282 5.039 3.516 6.79L12 21.75l5.484-3.99c2.234-1.75 3.516-4.174 3.516-6.79 0-4.797-4.03-8.687-9-8.687Z"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="w-4 h-4"
+              >
+                <path d="M12 2.25c-4.97 0-9 3.89-9 8.687 0 2.615 1.282 5.039 3.516 6.79L12 21.75l5.484-3.99c2.234-1.75 3.516-4.174 3.516-6.79 0-4.797-4.03-8.687-9-8.687Z" />
+              </svg>
               {SITE_CONFIG.venueName}
             </span>
             <a
@@ -167,7 +186,11 @@ function GiftCard({ gift, reserved, onToggle }) {
   return (
     <div className="group relative overflow-hidden rounded-3xl border border-black/5 bg-white shadow-sm">
       <div className="aspect-[4/3] w-full overflow-hidden">
-        <img src={gift.image} alt={gift.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        <img
+          src={gift.image}
+          alt={gift.title}
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
       </div>
       <div className="p-4">
         <h3 className="font-semibold text-lg">{gift.title}</h3>
@@ -187,7 +210,7 @@ function GiftCard({ gift, reserved, onToggle }) {
             onClick={onToggle}
             className={classNames(
               "px-3 py-2 rounded-xl text-sm text-white",
-              reserved ? "opacity-80" : "",
+              reserved ? "opacity-80" : ""
             )}
             style={{ backgroundColor: "var(--primary)" }}
           >
@@ -205,21 +228,108 @@ function GiftCard({ gift, reserved, onToggle }) {
 }
 
 function Gifts() {
-  const [reservations, setReservations] = useState({});
-  const toggleReservation = (id) =>
-    setReservations((prev) => ({ ...prev, [id]: !prev[id] }));
+  const [reservations, setReservations] = useState({}); // { [giftId]: { reserved_by, created_at } }
+  const [loading, setLoading] = useState(false);
+
+  // Cargar reservas existentes
+  useEffect(() => {
+    if (!supabase) return; // si no hay config, queda en modo local sin tiempo real
+    (async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("reservations")
+        .select("gift_id, reserved_by, created_at");
+      if (!error && data) {
+        const map = {};
+        data.forEach(
+          (r) =>
+            (map[r.gift_id] = {
+              reserved_by: r.reserved_by,
+              created_at: r.created_at,
+            })
+        );
+        setReservations(map);
+      }
+      setLoading(false);
+    })();
+
+    // Suscripción en tiempo real
+    const channel = supabase
+      .channel("reservations")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "reservations" },
+        (payload) => {
+          if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+            const r = payload.new;
+            setReservations((prev) => ({
+              ...prev,
+              [r.gift_id]: {
+                reserved_by: r.reserved_by,
+                created_at: r.created_at,
+              },
+            }));
+          } else if (payload.eventType === "DELETE") {
+            const r = payload.old;
+            setReservations((prev) => {
+              const clone = { ...prev };
+              delete clone[r.gift_id];
+              return clone;
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Toggle (reserva/libera)
+  const toggleReservation = async (giftId) => {
+    if (!supabase) {
+      // Fallback sin servidor: estado local
+      setReservations((prev) => ({
+        ...prev,
+        [giftId]: prev[giftId]
+          ? undefined
+          : { reserved_by: "Invitado", created_at: new Date().toISOString() },
+      }));
+      return;
+    }
+
+    if (reservations[giftId]) {
+      await supabase.from("reservations").delete().eq("gift_id", giftId);
+    } else {
+      await supabase
+        .from("reservations")
+        .upsert({ gift_id: giftId, reserved_by: "Invitado" });
+    }
+  };
 
   const shareMessage = encodeURIComponent(
     `Te compartimos nuestra lista de regalos: ${window.location.href}\n¡Gracias por acompañarnos!`
   );
 
   return (
-    <section id="regalos" className="scroll-mt-24 py-16 md:py-24 bg-gradient-to-b from-white to-black/[0.02]">
+    <section
+      id="regalos"
+      className="scroll-mt-24 py-16 md:py-24 bg-gradient-to-b from-white to-black/[0.02]"
+    >
       <div className="mx-auto max-w-6xl px-4">
         <div className="flex items-end justify-between gap-4 mb-6">
           <div>
             <h2 className="text-2xl md:text-3xl font-bold">Regalos</h2>
-            <p className="text-black/60">Elegí uno para obsequiarnos. Podés marcarlo como reservado para que no se repita.</p>
+            <p className="text-black/60">
+              Elegí uno para obsequiarnos.{" "}
+              {supabase
+                ? "Las reservas se sincronizan para todos en tiempo real."
+                : "*(Modo sin servidor: las reservas solo se guardan en este navegador)*"}
+            </p>
+            {loading && (
+              <p className="text-sm text-black/60 mt-1">Cargando reservas…</p>
+            )}
           </div>
           <div className="flex gap-2">
             <a
@@ -263,10 +373,14 @@ ${a.notes || ""}`.trim();
   return (
     <div className="rounded-2xl border border-black/10 p-4 bg-white flex flex-col md:flex-row md:items-center md:justify-between gap-3">
       <div>
-        <p className="font-semibold">{a.bank} · {a.accountType} ({a.currency})</p>
+        <p className="font-semibold">
+          {a.bank} · {a.accountType} ({a.currency})
+        </p>
         <p className="text-sm text-black/70">Titular: {a.holder}</p>
         <p className="text-sm text-black/70">Cuenta: {a.accountNumber}</p>
-        {a.aliasOrIBAN && <p className="text-sm text-black/70">IBAN/Alias: {a.aliasOrIBAN}</p>}
+        {a.aliasOrIBAN && (
+          <p className="text-sm text-black/70">IBAN/Alias: {a.aliasOrIBAN}</p>
+        )}
         {a.notes && <p className="text-xs text-black/50 mt-1">{a.notes}</p>}
       </div>
       <div className="flex gap-2">
@@ -285,9 +399,13 @@ function Deposits() {
   return (
     <section id="depositos" className="scroll-mt-24 py-16 md:py-24">
       <div className="mx-auto max-w-6xl px-4">
-        <h2 className="text-2xl md:text-3xl font-bold mb-6">Depósitos / Transferencias</h2>
+        <h2 className="text-2xl md:text-3xl font-bold mb-6">
+          Depósitos / Transferencias
+        </h2>
         <div className="space-y-4">
-          {ACCOUNTS.map((a, i) => <AccountRow key={i} a={a} />)}
+          {ACCOUNTS.map((a, i) => (
+            <AccountRow key={i} a={a} />
+          ))}
         </div>
       </div>
     </section>
@@ -298,8 +416,12 @@ function Footer() {
   return (
     <footer className="border-t border-black/5 py-10 bg-white">
       <div className="mx-auto max-w-6xl px-4 text-sm text-black/60 flex flex-col md:flex-row items-center justify-between gap-2">
-        <p>Con cariño, {SITE_CONFIG.coupleNames}. · {SITE_CONFIG.dateLabel}</p>
-        <a href="#inicio" className="underline underline-offset-4">Volver arriba</a>
+        <p>
+          Con cariño, {SITE_CONFIG.coupleNames}. · {SITE_CONFIG.dateLabel}
+        </p>
+        <a href="#inicio" className="underline underline-offset-4">
+          Volver arriba
+        </a>
       </div>
     </footer>
   );
