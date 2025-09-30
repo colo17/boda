@@ -1,145 +1,147 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-// ==========================
-// Config editable
-// ==========================
+/* ==========================
+   Config editable
+========================== */
 const SITE_CONFIG = {
   coupleNames: "Flo & Cica",
   dateLabel: "Sábado 29 de Noviembre de 2025",
   timeLabel: "18:00 hs",
   venueName: "Finca Clara",
   venueAddress: "San Juan 5072, 91001 Gral. Líber Seregni",
-  mapsUrl:
-    "https://maps.app.goo.gl/sYWUJTQiaP9WhPLr5",
-  heroImageUrl: "/images/cicatrica.jpg",
+  mapsUrl: "https://maps.app.goo.gl/sYWUJTQiaP9WhPLr5",
+  heroImageUrl: "/images/cicaflo2.jpg",
   cityAndCountry: "Canelones, Uruguay",
   primaryColor: "#2b292eff",
+
+  // 👇 URL del formulario de asistencia (Google Forms)
+  rsvpUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfUW5XiXZHI5M43v_SYBPC9ej8gfhJqqDwhgMpIrjUikTTLCA/viewform?usp=header",
 };
 
 const GIFTS = [
   {
     id: "g1",
-    title: "Juego de copas de cristal",
-    price: 65,
+    title: "Cafetera Xion Vintage",
+    price: 120,
     currency: "USD",
     url: "modal:transfer",
-    image: "/images/copas.jpg",
+    image: "/images/cafetera.jpg",
   },
   {
     id: "g2",
-    title: "Set de toallas premium",
-    price: 80,
+    title: "Sillas Comedor",
+    price: 65,
     currency: "USD",
-    url: "modal:transfer",
-    image: "/images/toallas.jpg",
+    url: "#",
+    image: "/images/sillas.jpg",
   },
   {
     id: "g3",
-    title: "Aporte para luna de miel",
-    price: 100,
+    title: "Mesa Comedor",
+    price: 300,
     currency: "USD",
-    url: "modal:transfer",
-    image: "/images/cica1.jpg",
+    url: "#",
+    image: "/images/mesa.jpg",
   },
   {
     id: "g4",
-    title: "Juego de copas de cristal",
-    price: 65,
+    title: "Juego de Copas de Cristal",
+    price: 45,
     currency: "USD",
-    url: "modal:transfer",
+    url: "#",
     image: "/images/copas.jpg",
   },
   {
     id: "g5",
-    title: "Set de toallas premium",
+    title: "Set de Cuadros",
     price: 80,
     currency: "USD",
-    url: "modal:transfer",
-    image: "/images/toallas.jpg",
+    url: "#",
+    image: "/images/cuadros.webp",
   },
   {
     id: "g6",
-    title: "Aporte para luna de miel",
+    title: "Aparador",
     price: 100,
     currency: "USD",
-    url: "modal:transfer",
-    image: "/images/cica2.jpg",
+    url: "#",
+    image: "/images/aparador.jpg",
   },
   {
     id: "g7",
-    title: "Juego de copas de cristal",
-    price: 65,
+    title: "Tostadora Vintage Xion",
+    price: 50,
     currency: "USD",
     url: "modal:transfer",
-    image: "/images/copas.jpg",
+    image: "/images/tostadora.jpg",
   },
   {
     id: "g8",
-    title: "Set de toallas premium",
-    price: 80,
+    title: "Mixer Vintage Xion",
+    price: 40,
     currency: "USD",
-    url: "modal:transfer",
-    image: "/images/toallas.jpg",
+    url: "#",
+    image: "/images/mixer.webp",
   },
   {
     id: "g9",
-    title: "Aporte para luna de miel",
+    title: "Licuadora Vintage Xion",
     price: 100,
     currency: "USD",
-    url: "modal:transfer",
-    image: "/images/cicatrica2.jpg",
+    url: "#",
+    image: "/images/licuadora.jpg",
   },
   {
     id: "g10",
-    title: "Juego de copas de cristal",
-    price: 65,
+    title: "Barbacue",
+    price: 250,
     currency: "USD",
-    url: "modal:transfer",
-    image: "/images/copas.jpg",
+    url: "#",
+    image: "/images/barbacue.jpg",
   },
   {
     id: "g11",
-    title: "Set de toallas premium",
+    title: "Set de Porta Retratos",
     price: 80,
     currency: "USD",
-    url: "modal:transfer",
-    image: "/images/toallas.jpg",
+    url: "#",
+    image: "/images/portaretratos.webp",
   },
   {
     id: "g12",
-    title: "Aporte para luna de miel",
+    title: "Regalo Luna de Miel",
     price: 100,
     currency: "USD",
-    url: "modal:transfer",
-    image: "/images/cica4.jpg",
+    url: "#",
+    image: "/images/cicaflo1.jpg",
   },
 ];
 
 const ACCOUNTS = [
   {
-    bank: "BROU",
+    bank: "ITAU",
     holder: "Florencia Scarabino",
     currency: "UYU",
     accountType: "Caja de Ahorro",
-    accountNumber: "000123456-7",
-    aliasOrIBAN: "UY00 0000 0001 2345 6700",
-    notes: "Regalo Boda de Tu Nombre",
+    accountNumber: "3163894",
+    aliasOrIBAN: "",
+    notes: "Regalo Boda Flo & Cica",
   },
   {
-    bank: "Santander",
-    holder: "Bruno Cicatiello",
+    bank: "ITAU",
+    holder: "Florencia Scarabino",
     currency: "USD",
-    accountType: "Cuenta",
-    accountNumber: "001-987654-3",
-    aliasOrIBAN: "UY00 0001 0987 6543 0000",
-    notes: "Regalo Boda de Tu Nombre",
+    accountType: "Caja de Ahorro",
+    accountNumber: "3163886",
+    aliasOrIBAN: "",
+    notes: "Regalo Boda Flo & Cica",
   },
 ];
 
-// ==========================
-// Utils + Supabase
-// ==========================
+/* ==========================
+   Utils + Supabase
+========================== */
 function classNames(...xs) {
   return xs.filter(Boolean).join(" ");
 }
@@ -147,9 +149,7 @@ function classNames(...xs) {
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnon = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supabase =
-  supabaseUrl && supabaseAnon
-    ? createClient(supabaseUrl, supabaseAnon)
-    : null;
+  supabaseUrl && supabaseAnon ? createClient(supabaseUrl, supabaseAnon) : null;
 
 function usePrimaryColor(hex) {
   const css = useMemo(
@@ -167,9 +167,9 @@ function usePrimaryColor(hex) {
   }, [css]);
 }
 
-// ==========================
-// UI
-// ==========================
+/* ==========================
+   UI
+========================== */
 function Nav() {
   return (
     <header className="fixed top-0 left-0 right-0 z-40 bg-white shadow-sm border-b border-black/10">
@@ -183,6 +183,9 @@ function Nav() {
         <div className="hidden md:flex gap-6 text-sm">
           <a href="#inicio" className="hover:opacity-80">
             Inicio
+          </a>
+          <a href="#asistencia" className="hover:opacity-80">
+            Asistencia
           </a>
           <a href="#regalos" className="hover:opacity-80">
             Regalos
@@ -209,10 +212,7 @@ function Nav() {
 
 function Hero() {
   return (
-    <section
-      id="inicio"
-      className="relative pt-16 sm:pt-0 scroll-mt-24"
-    >
+    <section id="inicio" className="relative pt-16 sm:pt-0 scroll-mt-24">
       {/* móvil: 100vh + padding arriba/abajo, desktop: pantalla completa */}
       <div className="relative h-[100vh] sm:h-screen flex items-center justify-center px-4 py-10 sm:py-0">
         <img
@@ -220,13 +220,11 @@ function Hero() {
           alt="Foto de los novios"
           className="absolute inset-0 w-full h-full object-cover"
         />
-
-        {/* 🔽 antes: bg-black/30 —> ahora más suave para que el vidrio destaque */}
+        {/* overlay suave */}
         <div className="absolute inset-0 bg-black/15" />
 
-        {/* tarjeta */}
+        {/* tarjeta vidrio */}
         <div className="relative z-10 w-full mx-auto max-w-lg sm:max-w-3xl">
-          {/* 🔽 vidrio: fallback compatible (bg-white bg-opacity-20) + blur + borde */}
           <div className="bg-white bg-opacity-20 backdrop-blur-lg rounded-2xl sm:rounded-3xl p-4 sm:p-8 md:p-10 shadow-xl border border-white/30 text-center text-white">
             <p className="uppercase tracking-[0.2em] text-xs sm:text-sm text-white/80 mb-1 sm:mb-2">
               ¡Nos casamos!
@@ -246,9 +244,8 @@ function Hero() {
 
             <div className="mt-3 sm:mt-5 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
               <span className="hidden sm:inline-flex items-center gap-2 text-sm px-3 py-2 rounded-full bg-white bg-opacity-20 backdrop-blur-sm">
-                {/* icono */}
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                  <path d="M12 2.25c-4.97 0-9 3.89-9 8.687 0 2.615 1.282 5.039 3.516 6.79L12 21.75l5.484-3.99c2.234-1.75 3.516-4.174 3.516-6.79 0-4.797-4.03-8.687-9-8.687Z"/>
+                  <path d="M12 2.25c-4.97 0-9 3.89-9 8.687 0 2.615 1.282 5.039 3.516 6.79L12 21.75l5.484-3.99c2.234-1.75 3.516-4.174 3.516-6.79 0-4.797-4.03-8.687-9-8.687Z" />
                 </svg>
                 {SITE_CONFIG.venueName}
               </span>
@@ -268,6 +265,37 @@ function Hero() {
   );
 }
 
+/* ========= NUEVO: Banner Confirmar asistencia ========= */
+function RsvpBanner() {
+  if (!SITE_CONFIG.rsvpUrl) return null;
+
+  return (
+    <section id="asistencia" className="py-8 md:py-10">
+      <div className="mx-auto max-w-6xl px-4">
+        <div className="rounded-2xl border border-black/10 bg-white/70 backdrop-blur-sm p-5 md:p-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="text-center sm:text-left">
+            <h3 className="text-lg md:text-xl font-semibold">¿Nos acompañás?</h3>
+            <p className="text-black/60 text-sm">
+              Completá el formulario para confirmar asistencia.
+            </p>
+          </div>
+
+          <a
+            href={SITE_CONFIG.rsvpUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="px-4 py-2 md:px-5 md:py-2.5 rounded-xl text-white shadow-sm hover:opacity-90 transition-opacity"
+            style={{ backgroundColor: "var(--primary)" }}
+          >
+            Confirmar asistencia
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ========= Tarjeta regalo ========= */
 function GiftCard({ gift, reserved, reservedInfo, onToggle, onTransfer }) {
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-3xl border border-black/5 bg-white shadow-sm">
@@ -288,7 +316,7 @@ function GiftCard({ gift, reserved, reservedInfo, onToggle, onTransfer }) {
         </p>
 
         <div className="mt-auto pt-3 flex gap-2">
-          {/* Botón transferir */}
+          {/* Transferir */}
           <button
             onClick={() => onTransfer?.(gift)}
             className="px-3 py-2 rounded-xl text-sm border border-black/10 hover:bg-black/5"
@@ -296,7 +324,7 @@ function GiftCard({ gift, reserved, reservedInfo, onToggle, onTransfer }) {
             Transferir
           </button>
 
-          {/* Botón reservar/cancelar */}
+          {/* Reservar / Cancelar */}
           <button
             onClick={onToggle}
             className={classNames(
@@ -309,7 +337,7 @@ function GiftCard({ gift, reserved, reservedInfo, onToggle, onTransfer }) {
           </button>
         </div>
 
-        {/* Info de quién lo reservó */}
+        {/* Info reservante */}
         {reserved && reservedInfo && (
           <p className="mt-2 text-xs text-black/60">
             Reservado por <strong>{reservedInfo.reserved_by || "Invitado"}</strong>
@@ -318,7 +346,7 @@ function GiftCard({ gift, reserved, reservedInfo, onToggle, onTransfer }) {
         )}
       </div>
 
-      {/* Cartel reservado con fondo BLANCO forzado */}
+      {/* Badge reservado (fondo blanco) */}
       {reserved && (
         <div
           className="absolute top-3 right-3 rounded-full px-3 py-1 text-xs border border-black/10 shadow-md text-black font-medium"
@@ -331,6 +359,7 @@ function GiftCard({ gift, reserved, reservedInfo, onToggle, onTransfer }) {
   );
 }
 
+/* ========= Gifts (lista + modales) ========= */
 function Gifts() {
   const [reservations, setReservations] = useState({});
   const [loading, setLoading] = useState(false);
@@ -345,11 +374,8 @@ function Gifts() {
   // Modal agradecimiento
   const [thankOpen, setThankOpen] = useState(false);
   const [thankGift, setThankGift] = useState(null);
-  const [thankGuest, setThankGuest] = useState("");   // 👈 nombre para el modal
 
-  // Liberar reserva
-  const [releasingId, setReleasingId] = useState(null);
-
+  // Cargar reservas + realtime
   useEffect(() => {
     if (!supabase) return;
 
@@ -405,9 +431,9 @@ function Gifts() {
     };
   }, []);
 
+  // Abrir modal de reserva (o reservar local)
   const onReserveClick = (gift) => {
     if (!supabase) {
-      // Modo sin servidor
       setReservations((prev) => ({
         ...prev,
         [gift.id]: {
@@ -417,7 +443,6 @@ function Gifts() {
         },
       }));
       setThankGift(gift);
-      setThankGuest("Invitado");   // 👈 nombre por defecto en modo local
       setThankOpen(true);
       return;
     }
@@ -427,6 +452,7 @@ function Gifts() {
     setModalOpen(true);
   };
 
+  // Confirmar reserva
   const confirmReserve = async () => {
     if (!activeGift) return;
     setSubmitting(true);
@@ -440,7 +466,6 @@ function Gifts() {
       const { error } = await supabase.from("reservations").upsert(payload);
       if (error) throw error;
 
-      // Optimista
       setReservations((prev) => ({
         ...prev,
         [activeGift.id]: {
@@ -452,7 +477,6 @@ function Gifts() {
 
       setModalOpen(false);
       setThankGift(activeGift);
-      setThankGuest(payload.reserved_by);   // 👈 guardamos el nombre tipeado
       setActiveGift(null);
       setThankOpen(true);
     } catch (e) {
@@ -463,10 +487,10 @@ function Gifts() {
     }
   };
 
+  // Liberar reserva
   const releaseGift = async (giftId) => {
     const ok = confirm("¿Seguro que querés liberar este regalo?");
     if (!ok) return;
-    setReleasingId(giftId);
 
     const prev = reservations[giftId];
     setReservations((cur) => {
@@ -476,17 +500,12 @@ function Gifts() {
     });
 
     try {
-      const { error } = await supabase
-        .from("reservations")
-        .delete()
-        .eq("gift_id", giftId);
-
+      const { error } = await supabase.from("reservations").delete().eq("gift_id", giftId);
       if (error) {
         setReservations((cur) => ({ ...cur, [giftId]: prev }));
         alert(`No se pudo liberar: ${error.message}`);
       }
     } finally {
-      setReleasingId(null);
     }
   };
 
@@ -495,11 +514,9 @@ function Gifts() {
   );
 
   return (
-    <section
-      id="regalos"
-      className="scroll-mt-24 py-16 md:py-24 bg-gradient-to-b from-white to-black/[0.02]"
-    >
+    <section id="regalos" className="scroll-mt-24 py-16 md:py-24 bg-gradient-to-b from-white to-black/[0.02]">
       <div className="mx-auto max-w-6xl px-4">
+        {/* Encabezado */}
         <div className="mb-6">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div className="text-center sm:text-left">
@@ -510,10 +527,9 @@ function Gifts() {
                   ? "Las reservas se sincronizan para todos en tiempo real."
                   : "*(Modo sin servidor: las reservas solo se guardan en este navegador)*"}
               </p>
-              {loading && (
-                <p className="text-sm text-black/60 mt-1">Cargando reservas…</p>
-              )}
+              {loading && <p className="text-sm text-black/60 mt-1">Cargando reservas…</p>}
 
+              {/* Botones en móvil */}
               <div className="mt-4 flex flex-wrap justify-center gap-2 sm:hidden">
                 <a
                   href={`https://wa.me/?text=${shareMessage}`}
@@ -532,6 +548,7 @@ function Gifts() {
               </div>
             </div>
 
+            {/* Botones a la derecha en desktop */}
             <div className="hidden sm:flex gap-2">
               <a
                 href={`https://wa.me/?text=${shareMessage}`}
@@ -551,6 +568,7 @@ function Gifts() {
           </div>
         </div>
 
+        {/* Grilla de tarjetas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {GIFTS.map((gift) => {
             const r = reservations[gift.id];
@@ -561,13 +579,9 @@ function Gifts() {
                 gift={gift}
                 reserved={isReserved}
                 reservedInfo={r}
-                onToggle={() =>
-                  isReserved ? releaseGift(gift.id) : onReserveClick(gift)
-                }
+                onToggle={() => (isReserved ? releaseGift(gift.id) : onReserveClick(gift))}
                 onTransfer={(g) => {
-                  // desde "Transferir" no hay nombre, así que lo dejamos vacío
                   setThankGift(g);
-                  setThankGuest("");
                   setThankOpen(true);
                 }}
               />
@@ -576,6 +590,7 @@ function Gifts() {
         </div>
       </div>
 
+      {/* Modal de reserva */}
       <ReservationModal
         open={modalOpen}
         gift={activeGift}
@@ -588,18 +603,13 @@ function Gifts() {
         onConfirm={confirmReserve}
       />
 
-      <ThankYouModal
-        open={thankOpen}
-        onClose={() => setThankOpen(false)}
-        gift={thankGift}
-        guest={thankGuest}           // 👈 pasamos el nombre al modal
-      />
+      {/* Modal de agradecimiento */}
+      <ThankYouModal open={thankOpen} onClose={() => setThankOpen(false)} gift={thankGift} />
     </section>
   );
 }
 
-
-
+/* ========= Modales ========= */
 function ReservationModal({ open, gift, name, note, setName, setNote, onCancel, onConfirm, submitting }) {
   if (!open || !gift) return null;
   return (
@@ -648,7 +658,7 @@ function ReservationModal({ open, gift, name, note, setName, setNote, onCancel, 
   );
 }
 
-function ThankYouModal({ open, onClose, gift, guest }) {
+function ThankYouModal({ open, onClose, gift }) {
   if (!open) return null;
 
   return (
@@ -673,7 +683,7 @@ function ThankYouModal({ open, onClose, gift, guest }) {
 
         <div className="mt-4 space-y-3 max-h-[60vh] overflow-y-auto pr-1">
           {ACCOUNTS.map((a, i) => (
-            <AccountRow key={i} a={a} gift={gift} guest={guest} />
+            <AccountRow key={i} a={a} gift={gift} />
           ))}
         </div>
 
@@ -690,12 +700,10 @@ function ThankYouModal({ open, onClose, gift, guest }) {
   );
 }
 
-
-function AccountRow({ a, gift, guest }) {
-  // Si viene gift, usamos "Regalo · Boda Flo & Cica · de <guest>"
-  const referenceText = gift?.title
-    ? `${gift.title} · Boda Flo & Cica${guest ? ` · ${guest}` : ""}`
-    : (a.notes || "");
+/* ========= Accounts (fila + botón copiar) ========= */
+function AccountRow({ a, gift }) {
+  // Agregamos nombre de regalo en la referencia si llega gift
+  const referenceText = [gift?.title, a.notes, "de Tu Nombre"].filter(Boolean).join(" · ");
 
   const toCopy = `${a.bank} · ${a.accountType} (${a.currency})
 Titular: ${a.holder}
@@ -732,9 +740,7 @@ ${referenceText ? `Referencia: ${referenceText}` : ""}`.trim();
         <p className="text-sm text-black/70">Titular: {a.holder}</p>
         <p className="text-sm text-black/70">Cuenta: {a.accountNumber}</p>
         {referenceText && (
-          <p className="text-xs text-black/60 mt-1">
-            Referencia: {referenceText}
-          </p>
+          <p className="text-xs text-black/60 mt-1">Referencia: {referenceText}</p>
         )}
       </div>
 
@@ -756,6 +762,7 @@ ${referenceText ? `Referencia: ${referenceText}` : ""}`.trim();
   );
 }
 
+/* ========= Depósitos ========= */
 function Deposits() {
   return (
     <section id="depositos" className="scroll-mt-24 py-16 md:py-24">
@@ -773,6 +780,7 @@ function Deposits() {
   );
 }
 
+/* ========= Footer ========= */
 function Footer() {
   return (
     <footer className="border-t border-black/5 py-10 bg-white">
@@ -790,6 +798,7 @@ function Footer() {
   );
 }
 
+/* ========= App ========= */
 export default function WeddingSite() {
   usePrimaryColor(SITE_CONFIG.primaryColor);
 
@@ -801,6 +810,10 @@ export default function WeddingSite() {
     <div className="min-h-screen bg-white text-gray-900 font-[system-ui]">
       <Nav />
       <Hero />
+
+      {/* 🔹 Banner Confirmar asistencia */}
+      <RsvpBanner />
+
       <Gifts />
       <Deposits />
       <Footer />
