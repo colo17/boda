@@ -16,17 +16,17 @@ const SITE_CONFIG = {
   primaryColor: "#2b292eff",
 
   // 👇 URL del formulario de asistencia (Google Forms)
-  rsvpUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfUW5XiXZHI5M43v_SYBPC9ej8gfhJqqDwhgMpIrjUikTTLCA/viewform?usp=header",
+  rsvpUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfUW5XiXZHI5M43v_SYBPC9ej8gfhJqqDwhgMpIrjUikTTLCA/viewform?usp=header ",
 };
 
 const GIFTS = [
   {
     id: "g1",
-    title: "Cafetera Xion Vintage",
-    price: 120,
+    title: "Paseo en Globo por Capadocia",
+    price: 100,
     currency: "USD",
     url: "modal:transfer",
-    image: "/images/cafetera.jpg",
+    image: "/images/globoCapadocia.jpg",
   },
   {
     id: "g2",
@@ -116,6 +116,30 @@ const GIFTS = [
     url: "#",
     image: "/images/cicaflo1.jpg",
   },
+  {
+    id: "g13",
+    title: "Tour en Cuatri por Capadocia",
+    price: 80,
+    currency: "USD",
+    url: "#",
+    image: "/images/cuatriCapadocia.jpg",
+  },
+  {
+    id: "g14",
+    title: "Tour en Barco por Saranda",
+    price: 300,
+    currency: "USD",
+    url: "#",
+    image: "/images/barcoSaranda.jpg",
+  },
+  {
+    id: "g15",
+    title: "Excursión en Montenegro por casco antiguo",
+    price: 100,
+    currency: "USD",
+    url: "#",
+    image: "/images/excursionMontenegro.jpg",
+  },
 ];
 
 const ACCOUNTS = [
@@ -132,7 +156,7 @@ const ACCOUNTS = [
     bank: "ITAU",
     holder: "Florencia Scarabino",
     currency: "USD",
-    accountType: "Caja de Ahorro",
+    accountType: "Cuenta",
     accountNumber: "3163886",
     aliasOrIBAN: "",
     notes: "Regalo Boda Flo & Cica",
@@ -705,10 +729,7 @@ function AccountRow({ a, gift }) {
   // Agregamos nombre de regalo en la referencia si llega gift
   const referenceText = [gift?.title, a.notes, "de Tu Nombre"].filter(Boolean).join(" · ");
 
-  const toCopy = `${a.bank} · ${a.accountType} (${a.currency})
-Titular: ${a.holder}
-Cuenta: ${a.accountNumber}
-${referenceText ? `Referencia: ${referenceText}` : ""}`.trim();
+  const toCopy = a.accountNumber;
 
   const [copied, setCopied] = useState(false);
 
@@ -755,7 +776,7 @@ ${referenceText ? `Referencia: ${referenceText}` : ""}`.trim();
           }
           aria-live="polite"
         >
-          {copied ? "Copiado" : "Copiar datos"}
+          {copied ? "Copiado" : "Copiar cuenta"}
         </button>
       </div>
     </div>
