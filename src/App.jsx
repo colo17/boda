@@ -110,11 +110,11 @@ const GIFTS = [
   },
   {
     id: "g12",
-    title: "Regalo Luna de Miel",
-    price: 100,
+    title: "Excursión al Lago Bovilla y al Monte Gamti",
+    price: 50,
     currency: "USD",
     url: "#",
-    image: "/images/cicaflo1.jpg",
+    image: "/images/bovilla.jpg",
   },
   {
     id: "g13",
@@ -294,7 +294,7 @@ function RsvpBanner() {
   if (!SITE_CONFIG.rsvpUrl) return null;
 
   return (
-    <section id="asistencia" className="py-8 md:py-10">
+  <section id="asistencia" className="py-4 md:py-6">
       <div className="mx-auto max-w-6xl px-4">
         <div className="rounded-2xl border border-black/10 bg-white/70 backdrop-blur-sm p-5 md:p-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="text-center sm:text-left">
@@ -538,7 +538,7 @@ function Gifts() {
   );
 
   return (
-    <section id="regalos" className="scroll-mt-24 py-16 md:py-24 bg-gradient-to-b from-white to-black/[0.02]">
+  <section id="regalos" className="scroll-mt-24 pt-6 md:pt-8 pb-8 md:pb-10 bg-gradient-to-b from-white to-black/[0.02]">
       <div className="mx-auto max-w-6xl px-4">
         {/* Encabezado */}
         <div className="mb-6">
@@ -786,7 +786,7 @@ function AccountRow({ a, gift }) {
 /* ========= Depósitos ========= */
 function Deposits() {
   return (
-    <section id="depositos" className="scroll-mt-24 py-16 md:py-24">
+  <section id="depositos" className="scroll-mt-24 pt-6 md:pt-8 pb-10 md:pb-12">
       <div className="mx-auto max-w-6xl px-4">
         <h2 className="text-2xl md:text-3xl font-bold mb-6">
           Depósitos / Transferencias
